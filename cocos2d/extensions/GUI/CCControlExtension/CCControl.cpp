@@ -28,12 +28,12 @@
  */
 
 #include "CCControl.h"
-#include "CCDirector.h"
-#include "CCMenu.h"
-#include "CCTouch.h"
+#include "base/CCDirector.h"
+#include "2d/CCMenu.h"
+#include "base/CCTouch.h"
 #include "CCInvocation.h"
-#include "CCEventDispatcher.h"
-#include "CCEventListenerTouch.h"
+#include "base/CCEventDispatcher.h"
+#include "base/CCEventListenerTouch.h"
 
 NS_CC_EXT_BEGIN
 
@@ -50,7 +50,7 @@ Control::Control()
 
 Control* Control::create()
 {
-    Control* pRet = new Control();
+    Control* pRet = new (std::nothrow) Control();
     if (pRet && pRet->init())
     {
         pRet->autorelease();
@@ -59,7 +59,7 @@ Control* Control::create()
     else
     {
         CC_SAFE_DELETE(pRet);
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -75,6 +75,7 @@ bool Control::init()
 
         auto dispatcher = Director::getInstance()->getEventDispatcher();
         auto touchListener = EventListenerTouchOneByOne::create();
+        touchListener->setSwallowTouches(true);
         touchListener->onTouchBegan = CC_CALLBACK_2(Control::onTouchBegan, this);
         touchListener->onTouchMoved = CC_CALLBACK_2(Control::onTouchMoved, this);
         touchListener->onTouchEnded = CC_CALLBACK_2(Control::onTouchEnded, this);
@@ -153,7 +154,7 @@ void Control::addTargetWithActionForControlEvents(Ref* target, Handler action, E
  *
  * @param target The target object that is, the object to which the action 
  * message is sent. It cannot be nil. The target is not retained.
- * @param action A selector identifying an action message. It cannot be NULL.
+ * @param action A selector identifying an action message. It cannot be nullptr.
  * @param controlEvent A control event for which the action message is sent.
  * See "CCControlEvent" for constants.
  */
@@ -239,9 +240,9 @@ bool Control::isOpacityModifyRGB() const
 }
 
 
-Point Control::getTouchLocation(Touch* touch)
+Vec2 Control::getTouchLocation(Touch* touch)
 {
-    Point touchLocation = touch->getLocation();            // Get the touch position
+    Vec2 touchLocation = touch->getLocation();            // Get the touch position
     touchLocation = this->convertToNodeSpace(touchLocation);  // Convert to the node space of this class
     
     return touchLocation;
@@ -249,7 +250,7 @@ Point Control::getTouchLocation(Touch* touch)
 
 bool Control::isTouchInside(Touch* touch)
 {
-    Point touchLocation = touch->getLocation(); // Get the touch position
+    Vec2 touchLocation = touch->getLocation(); // Get the touch position
     touchLocation = this->getParent()->convertToNodeSpace(touchLocation);
     Rect bBox = getBoundingBox();
     return bBox.containsPoint(touchLocation);
@@ -263,7 +264,7 @@ Vector<Invocation*>& Control::dispatchListforControlEvent(EventType controlEvent
     // If the invocation list does not exist for the  dispatch table, we create it
     if (iter == _dispatchTable.end())
     {
-        invocationList = new Vector<Invocation*>();
+        invocationList = new (std::nothrow) Vector<Invocation*>();
         _dispatchTable[(int)controlEvent] = invocationList;
     }
     else
@@ -319,7 +320,7 @@ bool Control::isHighlighted() const
 bool Control::hasVisibleParents() const
 {
     auto parent = this->getParent();
-    for( auto c = parent; c != NULL; c = c->getParent() )
+    for( auto c = parent; c != nullptr; c = c->getParent() )
     {
         if( !c->isVisible() )
         {

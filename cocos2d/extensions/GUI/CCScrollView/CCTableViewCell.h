@@ -27,14 +27,15 @@
 #define __CCTABLEVIEWCELL_H__
 
 #include "extensions/ExtensionMacros.h"
-#include "CCNode.h"
+#include "2d/CCNode.h"
+#include "extensions/ExtensionExport.h"
 
 NS_CC_EXT_BEGIN
 
 /**
  * Abstract class for SWTableView cell node
  */
-class TableViewCell: public Node
+class CC_EX_DLL TableViewCell: public Node
 {
 public:
     CREATE_FUNC(TableViewCell);

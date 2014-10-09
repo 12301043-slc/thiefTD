@@ -36,7 +36,7 @@ namespace cocostudio {
 Bone *Bone::create()
 {
 
-    Bone *pBone = new Bone();
+    Bone *pBone = new (std::nothrow) Bone();
     if (pBone && pBone->init())
     {
         pBone->autorelease();
@@ -50,7 +50,7 @@ Bone *Bone::create()
 Bone *Bone::create(const std::string& name)
 {
 
-    Bone *pBone = new Bone();
+    Bone *pBone = new (std::nothrow) Bone();
     if (pBone && pBone->init(name))
     {
         pBone->autorelease();
@@ -72,9 +72,9 @@ Bone::Bone()
     _displayManager = nullptr;
     _ignoreMovementBoneData = false;
 //    _worldTransform = AffineTransformMake(1, 0, 0, 1, 0, 0);
-    kmMat4Identity(&_worldTransform);
+    _worldTransform = Mat4::IDENTITY;
     _boneTransformDirty = true;
-    _blendFunc = BlendFunc::ALPHA_NON_PREMULTIPLIED;
+    _blendFunc = BlendFunc::ALPHA_PREMULTIPLIED;
     _blendDirty = false;
     _worldInfo = nullptr;
 
@@ -110,21 +110,21 @@ bool Bone::init(const std::string& name)
         _name = name;
 
         CC_SAFE_DELETE(_tweenData);
-        _tweenData = new FrameData();
+        _tweenData = new (std::nothrow) FrameData();
 
         CC_SAFE_DELETE(_tween);
-        _tween = new Tween();
+        _tween = new (std::nothrow) Tween();
         _tween->init(this);
 
         CC_SAFE_DELETE(_displayManager);
-        _displayManager = new DisplayManager();
+        _displayManager = new (std::nothrow) DisplayManager();
         _displayManager->init(this);
 
         CC_SAFE_DELETE(_worldInfo);
-        _worldInfo = new BaseData();
+        _worldInfo = new (std::nothrow) BaseData();
 
         CC_SAFE_DELETE(_boneData);
-        _boneData  = new BoneData();
+        _boneData  = new (std::nothrow) BoneData();
 
         bRet = true;
     }
@@ -201,8 +201,8 @@ void Bone::update(float delta)
         _worldInfo->y = _tweenData->y + _position.y;
         _worldInfo->scaleX = _tweenData->scaleX * _scaleX;
         _worldInfo->scaleY = _tweenData->scaleY * _scaleY;
-        _worldInfo->skewX = _tweenData->skewX + _skewX + _rotationX;
-        _worldInfo->skewY = _tweenData->skewY + _skewY - _rotationY;
+        _worldInfo->skewX = _tweenData->skewX + _skewX + CC_DEGREES_TO_RADIANS(_rotationZ_X);
+        _worldInfo->skewY = _tweenData->skewY + _skewY - CC_DEGREES_TO_RADIANS(_rotationZ_Y);
 
         if(_parentBone)
         {
@@ -238,8 +238,8 @@ void Bone::applyParentTransform(Bone *parent)
 {
     float x = _worldInfo->x;
     float y = _worldInfo->y;
-    _worldInfo->x = x * parent->_worldTransform.mat[0] + y * parent->_worldTransform.mat[4] + parent->_worldInfo->x;
-    _worldInfo->y = x * parent->_worldTransform.mat[1] + y * parent->_worldTransform.mat[5] + parent->_worldInfo->y;
+    _worldInfo->x = x * parent->_worldTransform.m[0] + y * parent->_worldTransform.m[4] + parent->_worldInfo->x;
+    _worldInfo->y = x * parent->_worldTransform.m[1] + y * parent->_worldTransform.m[5] + parent->_worldInfo->y;
     _worldInfo->scaleX = _worldInfo->scaleX * parent->_worldInfo->scaleX;
     _worldInfo->scaleY = _worldInfo->scaleY * parent->_worldInfo->scaleY;
     _worldInfo->skewX = _worldInfo->skewX + parent->_worldInfo->skewX;
@@ -247,9 +247,9 @@ void Bone::applyParentTransform(Bone *parent)
 }
 
 
-void CCBone::setBlendFunc(const BlendFunc& blendFunc)
+void Bone::setBlendFunc(const BlendFunc& blendFunc)
 {
-    if (_blendFunc.src != blendFunc.src && _blendFunc.dst != blendFunc.dst)
+    if (_blendFunc.src != blendFunc.src || _blendFunc.dst != blendFunc.dst)
     {
         _blendFunc = blendFunc;
         _blendDirty = true;
@@ -380,12 +380,12 @@ void Bone::setLocalZOrder(int zOrder)
         Node::setLocalZOrder(zOrder);
 }
 
-kmMat4 Bone::getNodeToArmatureTransform() const
+Mat4 Bone::getNodeToArmatureTransform() const
 {
     return _worldTransform;
 }
 
-kmMat4 Bone::getNodeToWorldTransform() const
+Mat4 Bone::getNodeToWorldTransform() const
 {
     return TransformConcat(_worldTransform, _armature->getNodeToWorldTransform());
 }

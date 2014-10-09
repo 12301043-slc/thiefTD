@@ -34,8 +34,9 @@
 #ifndef __CCCONTROL_UTILS_H__
 #define __CCCONTROL_UTILS_H__
 
-#include "CCSprite.h"
+#include "2d/CCSprite.h"
 #include "../../ExtensionMacros.h"
+#include "extensions/ExtensionExport.h"
 
 NS_CC_EXT_BEGIN
 
@@ -62,7 +63,7 @@ typedef struct
  */
 
 //helper class to store Color3B's in mutable arrays
-class Color3bObject : public Ref
+class CC_EX_DLL Color3bObject : public Ref
 {
 public:
     Color3B value;
@@ -73,14 +74,14 @@ public:
     Color3bObject(Color3B s_value):value(s_value){}
 };
 
-class ControlUtils
+class CC_EX_DLL ControlUtils
 {
 public:
     /**
      * @js NA
      * @lua NA
      */
-    static Sprite* addSpriteToTargetWithPosAndAnchor(const char* spriteName, Node * target, Point pos, Point anchor);
+    static Sprite* addSpriteToTargetWithPosAndAnchor(const char* spriteName, Node * target, Vec2 pos, Vec2 anchor);
     /**
      * @js NA
      * @lua NA

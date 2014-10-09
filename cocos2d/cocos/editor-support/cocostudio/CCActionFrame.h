@@ -25,11 +25,12 @@ THE SOFTWARE.
 #ifndef __ActionFRAME_H__
 #define __ActionFRAME_H__
 
-#include "CCGeometry.h"
-#include "CCActionInterval.h"
+#include "math/CCGeometry.h"
+#include "2d/CCActionInterval.h"
+#include "cocostudio/CocosStudioExport.h"
 
 namespace cocostudio {
-
+    
 enum FrameType
 {
 	kKeyframeMove = 0,
@@ -92,7 +93,7 @@ enum class FrameEaseType
 *  @js NA
 *  @lua NA
 */
-class ActionFrame: public cocos2d::Ref
+class CC_STUDIO_DLL ActionFrame: public cocos2d::Ref
 {
 
 public:
@@ -210,7 +211,7 @@ protected:
 *  @js NA
 *  @lua NA
 */
-class ActionMoveFrame:public ActionFrame
+class CC_STUDIO_DLL ActionMoveFrame:public ActionFrame
 {
 public:
 
@@ -229,14 +230,14 @@ public:
 	*
 	* @param the move action position.
 	*/
-	void setPosition(cocos2d::Point pos);
+	void setPosition(cocos2d::Vec2 pos);
 
 	/**
 	* Gets the move action position.
 	*
 	* @return the move action position.
 	*/
-	cocos2d::Point getPosition();
+	cocos2d::Vec2 getPosition();
 
 	/**
 	* Gets the ActionInterval of ActionFrame.
@@ -247,14 +248,14 @@ public:
 	*/
 	virtual cocos2d::ActionInterval* getAction(float duration);
 protected:
-	cocos2d::Point _position;
+    cocos2d::Vec2 _position;
 };
 
 /**
 *  @js NA
 *  @lua NA
 */
-class ActionScaleFrame:public ActionFrame
+class CC_STUDIO_DLL ActionScaleFrame:public ActionFrame
 {
 public:
 
@@ -312,7 +313,7 @@ protected:
 *  @js NA
 *  @lua NA
 */
-class ActionRotationFrame:public ActionFrame
+class CC_STUDIO_DLL ActionRotationFrame:public ActionFrame
 {
 public:
 
@@ -365,7 +366,7 @@ public:
 *  @js NA
 *  @lua NA
 */
-class ActionFadeFrame:public ActionFrame
+class CC_STUDIO_DLL ActionFadeFrame:public ActionFrame
 {
 public:
 
@@ -408,7 +409,7 @@ protected:
 *  @js NA
 *  @lua NA
 */
-class ActionTintFrame:public ActionFrame
+class CC_STUDIO_DLL ActionTintFrame:public ActionFrame
 {
 
 public:

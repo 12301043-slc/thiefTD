@@ -26,10 +26,11 @@
 #ifndef __CCSCROLLVIEW_H__
 #define __CCSCROLLVIEW_H__
 
-#include "CCLayer.h"
-#include "CCEventListenerTouch.h"
-#include "CCActionTween.h"
+#include "2d/CCLayer.h"
+#include "base/CCEventListenerTouch.h"
+#include "2d/CCActionTween.h"
 #include "extensions/ExtensionMacros.h"
+#include "extensions/ExtensionExport.h"
 
 NS_CC_EXT_BEGIN
 
@@ -40,7 +41,7 @@ NS_CC_EXT_BEGIN
 
 class ScrollView;
 
-class ScrollViewDelegate
+class CC_EX_DLL ScrollViewDelegate
 {
 public:
     /**
@@ -52,12 +53,12 @@ public:
      * @js NA
      * @lua NA
      */
-    virtual void scrollViewDidScroll(ScrollView* view) = 0;
+    virtual void scrollViewDidScroll(ScrollView* view) {};
     /**
      * @js NA
      * @lua NA
      */
-    virtual void scrollViewDidZoom(ScrollView* view) = 0;
+    virtual void scrollViewDidZoom(ScrollView* view) {};
 };
 
 
@@ -65,7 +66,7 @@ public:
  * ScrollView support for cocos2d-x.
  * It provides scroll view functionalities to cocos2d projects natively.
  */
-class ScrollView : public Layer, public ActionTweenDelegate
+class CC_EX_DLL  ScrollView : public Layer, public ActionTweenDelegate
 {
 public:
     enum class Direction
@@ -116,8 +117,8 @@ public:
      * @param offset    The new offset.
      * @param animated  If true, the view will scroll to the new offset.
      */
-    void setContentOffset(Point offset, bool animated = false);
-    Point getContentOffset();
+    void setContentOffset(Vec2 offset, bool animated = false);
+    Vec2 getContentOffset();
     /**
      * Sets a new content offset. It ignores max/min offset. It just sets what's given. (just like UIKit's UIScrollView)
      * You can override the animation duration with this method.
@@ -125,7 +126,7 @@ public:
      * @param offset    The new offset.
      * @param dt        The animation duration.
      */
-    void setContentOffsetInDuration(Point offset, float dt); 
+    void setContentOffsetInDuration(Vec2 offset, float dt); 
 
     void setZoomScale(float s);
     /**
@@ -145,14 +146,32 @@ public:
      * @param dt    The animation duration
      */
     void setZoomScaleInDuration(float s, float dt);
+
+    /**
+     * Set min scale
+     *
+     * @param minScale min scale
+     */
+    void setMinScale(float minScale) {
+        _minScale = minScale;
+    }
+    /**
+     * Set max scale
+     *
+     * @param maxScale max scale
+     */
+    void setMaxScale(float maxScale) {
+        _maxScale = maxScale;
+    }
+
     /**
      * Returns the current container's minimum offset. You may want this while you animate scrolling by yourself
      */
-    Point minContainerOffset();
+    Vec2 minContainerOffset();
     /**
      * Returns the current container's maximum offset. You may want this while you animate scrolling by yourself
      */
-    Point maxContainerOffset(); 
+    Vec2 maxContainerOffset(); 
     /**
      * Determines if a given node's bounding box is in visible bounds
      *
@@ -162,10 +181,12 @@ public:
     /**
      * Provided to make scroll view compatible with SWLayer's pause method
      */
+    using Layer::pause;  // fix warning
     void pause(Ref* sender);
     /**
      * Provided to make scroll view compatible with SWLayer's resume method
      */
+    using Layer::resume; // fix warning
     void resume(Ref* sender);
 
     void setTouchEnabled(bool enabled);
@@ -225,15 +246,18 @@ public:
      * @js NA
      * @lua NA
      */
-    virtual void visit(Renderer *renderer, const kmMat4 &parentTransform, bool parentTransformUpdated) override;
+    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
     
     using Node::addChild;
     virtual void addChild(Node * child, int zOrder, int tag) override;
+    virtual void addChild(Node * child, int zOrder, const std::string &name) override;
 
     /**
      * CCActionTweenDelegate
      */
     void updateTweenAction(float value, const std::string& key);
+
+    bool hasVisibleParents() const;
 protected:
     /**
      * Relocates the container at the proper offset, in bounds of max/min offsets.
@@ -273,19 +297,7 @@ protected:
     void handleZoom();
 
     Rect getViewRect();
-    
-    /**
-     * current zoom scale
-     */
-    float _zoomScale;
-    /**
-     * min zoom scale
-     */
-    float _minZoomScale;
-    /**
-     * max zoom scale
-     */
-    float _maxZoomScale;
+
     /**
      * scroll view delegate
      */
@@ -300,7 +312,7 @@ protected:
     /**
      * Content offset. Note that left-bottom point is the origin
      */
-    Point _contentOffset;
+    Vec2 _contentOffset;
 
     /**
      * Container holds scroll view contents, Sets the scrollable container object of the scroll view
@@ -313,11 +325,11 @@ protected:
     /**
      * max inset point to limit scrolling by touch
      */
-    Point _maxInset;
+    Vec2 _maxInset;
     /**
      * min inset point to limit scrolling by touch
      */
-    Point _minInset;
+    Vec2 _minInset;
     /**
      * Determines whether the scroll view is allowed to bounce or not.
      */
@@ -328,11 +340,11 @@ protected:
     /**
      * scroll speed
      */
-    Point _scrollDistance;
+    Vec2 _scrollDistance;
     /**
      * Touch point
      */
-    Point _touchPoint;
+    Vec2 _touchPoint;
     /**
      * length between two fingers
      */

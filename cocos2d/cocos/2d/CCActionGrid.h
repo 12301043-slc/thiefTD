@@ -26,8 +26,8 @@ THE SOFTWARE.
 #ifndef __ACTION_CCGRID_ACTION_H__
 #define __ACTION_CCGRID_ACTION_H__
 
-#include "CCActionInterval.h"
-#include "CCActionInstant.h"
+#include "2d/CCActionInterval.h"
+#include "2d/CCActionInstant.h"
 
 NS_CC_BEGIN
 
@@ -48,16 +48,21 @@ public:
     virtual GridBase* getGrid();
 
     // overrides
-	virtual GridAction * clone() const override = 0;
+    virtual GridAction * clone() const override
+    {
+        CC_ASSERT(0);
+        return nullptr;
+    }
     virtual GridAction* reverse() const override;
     virtual void startWithTarget(Node *target) override;
 
-protected:
+CC_CONSTRUCTOR_ACCESS:
     GridAction() {}
     virtual ~GridAction() {}
     /** initializes the action with size and duration */
     bool initWithDuration(float duration, const Size& gridSize);
 
+protected:
     Size _gridSize;
     
     NodeGrid* _gridNodeTarget;
@@ -82,34 +87,38 @@ public:
      * @js NA
      * @lua NA
      */
-    Vertex3F getVertex(const Point& position) const;
+    Vec3 getVertex(const Vec2& position) const;
 
     /** @deprecated Use getVertex() instead 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE inline Vertex3F vertex(const Point& position) { return getVertex(position); }
+    CC_DEPRECATED_ATTRIBUTE inline Vec3 vertex(const Vec2& position) { return getVertex(position); }
 
     /** returns the non-transformed vertex than belongs to certain position in the grid 
      * @js NA
      * @lua NA
      */
-    Vertex3F getOriginalVertex(const Point& position) const;
+    Vec3 getOriginalVertex(const Vec2& position) const;
 
     /** @deprecated Use getOriginalVertex() instead 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE inline Vertex3F originalVertex(const Point& position) { return getOriginalVertex(position); }
+    CC_DEPRECATED_ATTRIBUTE inline Vec3 originalVertex(const Vec2& position) { return getOriginalVertex(position); }
 
     /** sets a new vertex to a certain position of the grid 
      * @js NA
      * @lua NA
      */
-    void setVertex(const Point& position, const Vertex3F& vertex);
+    void setVertex(const Vec2& position, const Vec3& vertex);
 
     // Overrides
-	virtual Grid3DAction * clone() const override = 0;
+    virtual Grid3DAction * clone() const override
+    {
+        CC_ASSERT(0);
+        return nullptr;
+    }
 };
 
 /** @brief Base class for TiledGrid3D actions */
@@ -126,37 +135,41 @@ public:
      * @js NA
      * @lua NA
      */
-    Quad3 getTile(const Point& position) const;
+    Quad3 getTile(const Vec2& position) const;
 
     /** @deprecated Use getTile() instead 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE Quad3 tile(const Point& position) { return getTile(position); }
+    CC_DEPRECATED_ATTRIBUTE Quad3 tile(const Vec2& position) { return getTile(position); }
 
     /** returns the non-transformed tile that belongs to a certain position of the grid 
      * @js NA
      * @lua NA
      */
-    Quad3 getOriginalTile(const Point& position) const;
+    Quad3 getOriginalTile(const Vec2& position) const;
 
     /** @deprecated Use getOriginalTile() instead 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE Quad3 originalTile(const Point& position) { return getOriginalTile(position); }
+    CC_DEPRECATED_ATTRIBUTE Quad3 originalTile(const Vec2& position) { return getOriginalTile(position); }
 
     /** sets a new tile to a certain position of the grid 
      * @js NA
      * @lua NA
      */
-    void setTile(const Point& position, const Quad3& coords);
+    void setTile(const Vec2& position, const Quad3& coords);
 
     /** returns the grid */
     virtual GridBase* getGrid();
 
     // Override
-    virtual TiledGrid3DAction * clone() const override = 0;
+    virtual TiledGrid3DAction * clone() const override
+    {
+        CC_ASSERT(0);
+        return nullptr;
+    }
 };
 
 /** @brief AccelDeccelAmplitude action */
@@ -169,20 +182,20 @@ public:
     /** get amplitude rate */
     inline float getRate(void) const { return _rate; }
     /** set amplitude rate */
-    inline void setRate(float fRate) { _rate = fRate; }
+    inline void setRate(float rate) { _rate = rate; }
 
     // Overrides
     virtual void startWithTarget(Node *target) override;
     virtual void update(float time) override;
-	virtual AccelDeccelAmplitude* clone() const override;
-	virtual AccelDeccelAmplitude* reverse() const override;
+    virtual AccelDeccelAmplitude* clone() const override;
+    virtual AccelDeccelAmplitude* reverse() const override;
     
 CC_CONSTRUCTOR_ACCESS:
     AccelDeccelAmplitude() {}
     virtual ~AccelDeccelAmplitude();
     
     /** initializes the action with an inner action that has the amplitude property, and a duration time */
-    bool initWithAction(Action *pAction, float duration);
+    bool initWithAction(Action *action, float duration);
 
 protected:
     float _rate;
@@ -207,8 +220,8 @@ public:
     // Overrides
     virtual void startWithTarget(Node *target) override;
     virtual void update(float time) override;
-	virtual AccelAmplitude* clone() const override;
-	virtual AccelAmplitude* reverse() const override;
+    virtual AccelAmplitude* clone() const override;
+    virtual AccelAmplitude* reverse() const override;
     
 CC_CONSTRUCTOR_ACCESS:
     AccelAmplitude() {}
@@ -232,15 +245,15 @@ public:
     static DeccelAmplitude* create(Action *action, float duration);
 
     /** get amplitude rate */
-    inline float getRate(void) const { return _rate; }
+    inline float getRate() const { return _rate; }
     /** set amplitude rate */
     inline void setRate(float rate) { _rate = rate; }
 
     // overrides
     virtual void startWithTarget(Node *target) override;
     virtual void update(float time) override;
-	virtual DeccelAmplitude* clone() const override;
-	virtual DeccelAmplitude* reverse() const override;
+    virtual DeccelAmplitude* clone() const override;
+    virtual DeccelAmplitude* reverse() const override;
     
 CC_CONSTRUCTOR_ACCESS:
     DeccelAmplitude() {}
@@ -270,13 +283,14 @@ public:
 
     // Overrides
     virtual void startWithTarget(Node *target) override;
-	virtual StopGrid* clone() const override;
-	virtual StopGrid* reverse() const override;
+    virtual StopGrid* clone() const override;
+    virtual StopGrid* reverse() const override;
 
-protected:
+CC_CONSTRUCTOR_ACCESS:
     StopGrid() {}
     virtual ~StopGrid() {}
     
+protected:
     NodeGrid* _gridNodeTarget;
     
     void cacheTargetAsGridNode();
@@ -294,8 +308,8 @@ public:
 
     // Override
     virtual void startWithTarget(Node *target) override;
-	virtual ReuseGrid* clone() const override;
-	virtual ReuseGrid* reverse() const override;
+    virtual ReuseGrid* clone() const override;
+    virtual ReuseGrid* reverse() const override;
     
 CC_CONSTRUCTOR_ACCESS:
     ReuseGrid() {}

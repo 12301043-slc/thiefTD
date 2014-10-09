@@ -30,8 +30,9 @@
 #ifndef __CCINVOCATION_H__
 #define __CCINVOCATION_H__
 
-#include "CCRef.h"
+#include "base/CCRef.h"
 #include "../../ExtensionMacros.h"
+#include "extensions/ExtensionExport.h"
 #include "CCControl.h"
 
 NS_CC_EXT_BEGIN
@@ -45,7 +46,7 @@ NS_CC_EXT_BEGIN
 
 #define cccontrol_selector(_SELECTOR) static_cast<cocos2d::extension::Control::Handler>(&_SELECTOR)
 
-class Invocation : public Ref
+class CC_EX_DLL Invocation : public Ref
 {
 public:
     /**

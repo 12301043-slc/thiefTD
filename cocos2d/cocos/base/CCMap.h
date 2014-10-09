@@ -27,8 +27,8 @@
 
 #define USE_STD_UNORDERED_MAP 1
 
-#include "ccMacros.h"
-#include "CCRef.h"
+#include "base/ccMacros.h"
+#include "base/CCRef.h"
 #include <vector>
 
 #if USE_STD_UNORDERED_MAP
@@ -45,7 +45,7 @@ NS_CC_BEGIN
  */
 
 template <class K, class V>
-class CC_DLL Map
+class Map
 {
 public:
     // ------------------------------------------

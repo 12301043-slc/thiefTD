@@ -23,16 +23,17 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "CCFontFNT.h"
-#include "uthash.h"
-#include "CCConfiguration.h"
-#include "CCDirector.h"
-#include "CCFontAtlas.h"
-#include "CCMap.h"
-#include "CCString.h"
-#include "CCTextureCache.h"
-#include "ccUTF8.h"
+#include "2d/CCFontFNT.h"
+#include <set>
+#include "base/uthash.h"
+#include "2d/CCFontAtlas.h"
 #include "platform/CCFileUtils.h"
+#include "base/CCConfiguration.h"
+#include "base/CCDirector.h"
+#include "base/CCMap.h"
+#include "renderer/CCTextureCache.h"
+
+#include "deprecated/CCString.h"
 
 using namespace std;
 NS_CC_BEGIN
@@ -102,7 +103,7 @@ typedef struct _KerningHashElement
 */
 class CC_DLL BMFontConfiguration : public Ref
 {
-    // XXX: Creating a public interface so that the bitmapFontArray[] is accessible
+    // FIXME: Creating a public interface so that the bitmapFontArray[] is accessible
 public://@public
     // BMFont definitions
     tFontDefHashElement *_fontDefDictionary;
@@ -167,7 +168,7 @@ BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
 
     if( s_configurations == nullptr )
     {
-        s_configurations = new Map<std::string, BMFontConfiguration*>();
+        s_configurations = new (std::nothrow) Map<std::string, BMFontConfiguration*>();
     }
 
     ret = s_configurations->at(fntFile);
@@ -189,7 +190,7 @@ BMFontConfiguration* FNTConfigLoadFile(const std::string& fntFile)
 
 BMFontConfiguration * BMFontConfiguration::create(const std::string& FNTfile)
 {
-    BMFontConfiguration * ret = new BMFontConfiguration();
+    BMFontConfiguration * ret = new (std::nothrow) BMFontConfiguration();
     if (ret->initWithFNTfile(FNTfile))
     {
         ret->autorelease();
@@ -313,7 +314,7 @@ std::set<unsigned int>* BMFontConfiguration::parseConfigFile(const std::string& 
 
         if(line.substr(0,strlen("info face")) == "info face") 
         {
-            // XXX: info parsing is incomplete
+            // FIXME: info parsing is incomplete
             // Not needed for the Hiero editors, but needed for the AngelCode editor
             //            [self parseInfoArguments:line];
             this->parseInfoArguments(line);
@@ -665,7 +666,7 @@ void BMFontConfiguration::parseKerningEntry(std::string line)
     HASH_ADD_INT(_kerningDictionary,key, element);
 }
 
-FontFNT * FontFNT::create(const std::string& fntFilePath, const Point& imageOffset /* = Point::ZERO */)
+FontFNT * FontFNT::create(const std::string& fntFilePath, const Vec2& imageOffset /* = Vec2::ZERO */)
 {
     BMFontConfiguration *newConf = FNTConfigLoadFile(fntFilePath);
     if (!newConf)
@@ -690,16 +691,16 @@ FontFNT * FontFNT::create(const std::string& fntFilePath, const Point& imageOffs
     return tempFont;
 }
 
-FontFNT::FontFNT(BMFontConfiguration *theContfig, const Point& imageOffset /* = Point::ZERO */)
+FontFNT::FontFNT(BMFontConfiguration *theContfig, const Vec2& imageOffset /* = Vec2::ZERO */)
 :_configuration(theContfig)
 ,_imageOffset(CC_POINT_PIXELS_TO_POINTS(imageOffset))
 {
-
+	_configuration->retain();
 }
 
 FontFNT::~FontFNT()
 {
-
+	_configuration->release();
 }
 
 void FontFNT::purgeCachedData()
@@ -711,12 +712,9 @@ void FontFNT::purgeCachedData()
     }
 }
 
-int * FontFNT::getHorizontalKerningForTextUTF16(unsigned short *text, int &outNumLetters) const
+int * FontFNT::getHorizontalKerningForTextUTF16(const std::u16string& text, int &outNumLetters) const
 {
-    if (!text)
-        return 0;
-    
-    outNumLetters = cc_wcslen(text);
+    outNumLetters = static_cast<int>(text.length());
     
     if (!outNumLetters)
         return 0;
@@ -755,7 +753,7 @@ int  FontFNT::getHorizontalKerningForChars(unsigned short firstChar, unsigned sh
 
 FontAtlas * FontFNT::createFontAtlas()
 {
-    FontAtlas *tempAtlas = new FontAtlas(*this);
+    FontAtlas *tempAtlas = new (std::nothrow) FontAtlas(*this);
     if (!tempAtlas)
         return nullptr;
     

@@ -22,7 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "CCTweenFunction.h"
+#include "2d/CCTweenFunction.h"
+
+#define _USE_MATH_DEFINES // needed for M_PI and M_PI2
+#include <math.h> // M_PI
+#undef _USE_MATH_DEFINES
 
 NS_CC_BEGIN
 

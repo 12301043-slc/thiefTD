@@ -22,15 +22,16 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
+#include "2d/CCFontAtlasCache.h"
 
+#include <iostream>
 #include <sstream>
 
-#include "CCFontAtlasCache.h"
-
-#include "CCFontFNT.h"
-#include "CCFontFreeType.h"
-#include "CCFontCharMap.h"
-#include "CCDirector.h"
+#include "2d/CCFontFNT.h"
+#include "2d/CCFontFreeType.h"
+#include "2d/CCFontAtlas.h"
+#include "2d/CCFontCharMap.h"
+#include "base/CCDirector.h"
 
 NS_CC_BEGIN
 
@@ -69,8 +70,8 @@ FontAtlas * FontAtlasCache::getFontAtlasTTF(const TTFConfig & config)
 
     if ( it == _atlasMap.end() )
     {
-        auto font = FontFreeType::create(config.fontFilePath, fontSize * contentScaleFactor, config.glyphs, 
-            config.customGlyphs,useDistanceField,config.outlineSize * contentScaleFactor);
+        auto font = FontFreeType::create(config.fontFilePath, fontSize, config.glyphs, 
+            config.customGlyphs, useDistanceField, config.outlineSize);
         if (font)
         {
             auto tempAtlas = font->createFontAtlas();
@@ -90,7 +91,7 @@ FontAtlas * FontAtlasCache::getFontAtlasTTF(const TTFConfig & config)
     return nullptr;
 }
 
-FontAtlas * FontAtlasCache::getFontAtlasFNT(const std::string& fontFileName, const Point& imageOffset /* = Point::ZERO */)
+FontAtlas * FontAtlasCache::getFontAtlasFNT(const std::string& fontFileName, const Vec2& imageOffset /* = Vec2::ZERO */)
 {
     std::string atlasName = generateFontName(fontFileName, 0, GlyphCollection::CUSTOM,false);
     auto it = _atlasMap.find(atlasName);
@@ -178,7 +179,10 @@ FontAtlas * FontAtlasCache::getFontAtlasCharMap(Texture2D* texture, int itemWidt
 
 FontAtlas * FontAtlasCache::getFontAtlasCharMap(const std::string& charMapFile, int itemWidth, int itemHeight, int startCharMap)
 {
-    std::string atlasName = generateFontName(charMapFile, 0, GlyphCollection::CUSTOM,false);
+    char tmp[255];
+    snprintf(tmp,250,"name:%s_%d_%d_%d",charMapFile.c_str(),itemWidth,itemHeight,startCharMap);
+
+    std::string atlasName = generateFontName(tmp, 0, GlyphCollection::CUSTOM,false);
 
     auto it = _atlasMap.find(atlasName);
     if ( it == _atlasMap.end() )

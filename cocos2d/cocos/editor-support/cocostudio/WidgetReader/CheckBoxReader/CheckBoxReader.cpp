@@ -2,13 +2,20 @@
 
 #include "CheckBoxReader.h"
 #include "ui/UICheckBox.h"
+#include "cocostudio/CocoLoader.h"
 
 USING_NS_CC;
 using namespace ui;
 
 namespace cocostudio
 {
-    static CheckBoxReader* instanceCheckBoxReader = NULL;
+    static const char* P_BackGroundBoxData = "backGroundBoxData";
+    static const char* P_BackGroundBoxSelectedData = "backGroundBoxSelectedData";
+    static const char* P_FrontCrossData = "frontCrossData";
+    static const char* P_BackGroundBoxDisabledData = "backGroundBoxDisabledData";
+    static const char* P_FrontCrossDisabledData = "frontCrossDisabledData";
+    
+    static CheckBoxReader* instanceCheckBoxReader = nullptr;
     
     IMPLEMENT_CLASS_WIDGET_READER_INFO(CheckBoxReader)
     
@@ -26,129 +33,119 @@ namespace cocostudio
     {
         if (!instanceCheckBoxReader)
         {
-            instanceCheckBoxReader = new CheckBoxReader();
+            instanceCheckBoxReader = new (std::nothrow) CheckBoxReader();
         }
         return instanceCheckBoxReader;
+    }
+    
+    void CheckBoxReader::setPropsFromBinary(cocos2d::ui::Widget *widget, CocoLoader *cocoLoader, stExpCocoNode *cocoNode)
+    {
+        
+        CheckBox *checkBox = static_cast<CheckBox*>(widget);
+        this->beginSetBasicProperties(widget);
+        stExpCocoNode *stChildArray = cocoNode->GetChildArray(cocoLoader);
+        
+        for (int i = 0; i < cocoNode->GetChildNum(); ++i) {
+            std::string key = stChildArray[i].GetName(cocoLoader);
+            std::string value = stChildArray[i].GetValue(cocoLoader);
+//            CCLOG("key = %s, index : %d", key.c_str(), i);
+            //read all basic properties of widget
+            CC_BASIC_PROPERTY_BINARY_READER
+            //read all color related properties of widget
+            CC_COLOR_PROPERTY_BINARY_READER
+            
+            else if (key == P_BackGroundBoxData){
+                
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                checkBox->loadTextureBackGround(backgroundValue, imageFileNameType);
+            }else if(key == P_BackGroundBoxSelectedData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                checkBox->loadTextureBackGroundSelected(backgroundValue, imageFileNameType);
+            }else if(key == P_FrontCrossData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                checkBox->loadTextureFrontCross(backgroundValue, imageFileNameType);
+            }else if(key == P_BackGroundBoxDisabledData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                checkBox->loadTextureBackGroundDisabled(backgroundValue, imageFileNameType);
+            }else if (key == P_FrontCrossDisabledData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                checkBox->loadTextureFrontCrossDisabled(backgroundValue, imageFileNameType);
+            }
+//            else if (key == "selectedState"){
+//                checkBox->setSelectedState(valueToBool(value));
+//            }
+        }
+        
+        this->endSetBasicProperties(widget);
+        
+        
     }
     
     void CheckBoxReader::setPropsFromJsonDictionary(Widget *widget, const rapidjson::Value &options)
     {
         WidgetReader::setPropsFromJsonDictionary(widget, options);
         
-        
-        std::string jsonPath = GUIReader::getInstance()->getFilePath();
-        
         CheckBox* checkBox = static_cast<CheckBox*>(widget);
+       
+        //load background image
+        const rapidjson::Value& backGroundDic = DICTOOL->getSubDictionary_json(options, P_BackGroundBoxData);
+        int backGroundType = DICTOOL->getIntValue_json(backGroundDic,P_ResourceType);
+        std::string backGroundTexturePath = this->getResourcePath(backGroundDic, P_Path, (Widget::TextureResType)backGroundType);
+         checkBox->loadTextureBackGround(backGroundTexturePath, (Widget::TextureResType)backGroundType);
         
-        const rapidjson::Value& backGroundDic = DICTOOL->getSubDictionary_json(options, "backGroundBoxData");
-        int backGroundType = DICTOOL->getIntValue_json(backGroundDic, "resourceType");
-        switch (backGroundType)
-        {
-            case 0:
-            {
-                std::string tp_b = jsonPath;
-                const char* backGroundFileName = DICTOOL->getStringValue_json(backGroundDic, "path");
-                const char* backGroundFileName_tp = (backGroundFileName && (strcmp(backGroundFileName, "") != 0))?tp_b.append(backGroundFileName).c_str():nullptr;
-                checkBox->loadTextureBackGround(backGroundFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* backGroundFileName = DICTOOL->getStringValue_json(backGroundDic, "path");
-                checkBox->loadTextureBackGround(backGroundFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
+       //load background selected image
+        const rapidjson::Value& backGroundSelectedDic = DICTOOL->getSubDictionary_json(options, P_BackGroundBoxSelectedData);
+        int backGroundSelectedType = DICTOOL->getIntValue_json(backGroundSelectedDic, P_ResourceType);
+        std::string backGroundSelectedTexturePath = this->getResourcePath(backGroundSelectedDic, P_Path, (Widget::TextureResType)backGroundSelectedType);
+        checkBox->loadTextureBackGroundSelected(backGroundSelectedTexturePath, (Widget::TextureResType)backGroundSelectedType);
         
-        const rapidjson::Value& backGroundSelectedDic = DICTOOL->getSubDictionary_json(options, "backGroundBoxSelectedData");
-        int backGroundSelectedType = DICTOOL->getIntValue_json(backGroundSelectedDic, "resourceType");
-        switch (backGroundSelectedType)
-        {
-            case 0:
-            {
-                std::string tp_bs = jsonPath;
-                const char* backGroundSelectedFileName = DICTOOL->getStringValue_json(backGroundSelectedDic, "path");
-                const char* backGroundSelectedFileName_tp = (backGroundSelectedFileName && (strcmp(backGroundSelectedFileName, "") != 0))?tp_bs.append(backGroundSelectedFileName).c_str():nullptr;
-                checkBox->loadTextureBackGroundSelected(backGroundSelectedFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* backGroundSelectedFileName = DICTOOL->getStringValue_json(backGroundSelectedDic, "path");
-                checkBox->loadTextureBackGroundSelected(backGroundSelectedFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
+        //load frontCross image
+        const rapidjson::Value& frontCrossDic = DICTOOL->getSubDictionary_json(options, P_FrontCrossData);
+        int frontCrossType = DICTOOL->getIntValue_json(frontCrossDic, P_ResourceType);
+        std::string frontCrossFileName = this->getResourcePath(frontCrossDic, P_Path, (Widget::TextureResType)frontCrossType);
+        checkBox->loadTextureFrontCross(frontCrossFileName, (Widget::TextureResType)frontCrossType);
         
-        const rapidjson::Value& frontCrossDic = DICTOOL->getSubDictionary_json(options, "frontCrossData");
-        int frontCrossType = DICTOOL->getIntValue_json(frontCrossDic, "resourceType");
-        switch (frontCrossType)
-        {
-            case 0:
-            {
-                std::string tp_c = jsonPath;
-                const char* frontCrossFileName = DICTOOL->getStringValue_json(frontCrossDic, "path");
-                const char* frontCrossFileName_tp = (frontCrossFileName && (strcmp(frontCrossFileName, "") != 0))?tp_c.append(frontCrossFileName).c_str():nullptr;
-                checkBox->loadTextureFrontCross(frontCrossFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* frontCrossFileName = DICTOOL->getStringValue_json(frontCrossDic, "path");
-                checkBox->loadTextureFrontCross(frontCrossFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
+       //load backGroundBoxDisabledData
+        const rapidjson::Value& backGroundDisabledDic = DICTOOL->getSubDictionary_json(options, P_BackGroundBoxDisabledData);
+        int backGroundDisabledType = DICTOOL->getIntValue_json(backGroundDisabledDic, P_ResourceType);
+        std::string backGroundDisabledFileName = this->getResourcePath(backGroundDisabledDic, P_Path, (Widget::TextureResType)backGroundDisabledType);
+        checkBox->loadTextureBackGroundDisabled(backGroundDisabledFileName, (Widget::TextureResType)backGroundDisabledType);
         
-        const rapidjson::Value& backGroundDisabledDic = DICTOOL->getSubDictionary_json(options, "backGroundBoxDisabledData");
-        int backGroundDisabledType = DICTOOL->getIntValue_json(backGroundDisabledDic, "resourceType");
-        switch (backGroundDisabledType)
-        {
-            case 0:
-            {
-                std::string tp_bd = jsonPath;
-                const char* backGroundDisabledFileName = DICTOOL->getStringValue_json(backGroundDisabledDic, "path");
-                const char* backGroundDisabledFileName_tp = (backGroundDisabledFileName && (strcmp(backGroundDisabledFileName, "") != 0))?tp_bd.append(backGroundDisabledFileName).c_str():nullptr;
-                checkBox->loadTextureBackGroundDisabled(backGroundDisabledFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* backGroundDisabledFileName = DICTOOL->getStringValue_json(backGroundDisabledDic, "path");
-                checkBox->loadTextureBackGroundDisabled(backGroundDisabledFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
-        
-        const rapidjson::Value& frontCrossDisabledDic = DICTOOL->getSubDictionary_json(options, "frontCrossDisabledData");
-        int frontCrossDisabledType = DICTOOL->getIntValue_json(frontCrossDisabledDic, "resourceType");
-        switch (frontCrossDisabledType)
-        {
-            case 0:
-            {
-                std::string tp_cd = jsonPath;
-                const char* frontCrossDisabledFileName = DICTOOL->getStringValue_json(options, "path");
-                const char* frontCrossDisabledFileName_tp = (frontCrossDisabledFileName && (strcmp(frontCrossDisabledFileName, "") != 0))?tp_cd.append(frontCrossDisabledFileName).c_str():nullptr;
-                checkBox->loadTextureFrontCrossDisabled(frontCrossDisabledFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* frontCrossDisabledFileName = DICTOOL->getStringValue_json(options, "path");
-                checkBox->loadTextureFrontCrossDisabled(frontCrossDisabledFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
+        ///load frontCrossDisabledData
+        const rapidjson::Value& frontCrossDisabledDic = DICTOOL->getSubDictionary_json(options, P_FrontCrossDisabledData);
+        int frontCrossDisabledType = DICTOOL->getIntValue_json(frontCrossDisabledDic, P_ResourceType);
+        std::string frontCrossDisabledFileName = this->getResourcePath(frontCrossDisabledDic, P_Path, (Widget::TextureResType)frontCrossDisabledType);
+        checkBox->loadTextureFrontCrossDisabled(frontCrossDisabledFileName, (Widget::TextureResType)frontCrossDisabledType);
         
         
         WidgetReader::setColorPropsFromJsonDictionary(widget, options);

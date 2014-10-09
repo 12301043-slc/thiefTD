@@ -26,7 +26,7 @@ THE SOFTWARE.
 #ifndef __ACTION_CCPAGETURN3D_ACTION_H__
 #define __ACTION_CCPAGETURN3D_ACTION_H__
 
-#include "CCActionGrid3D.h"
+#include "2d/CCActionGrid3D.h"
 
 NS_CC_BEGIN
 
@@ -47,6 +47,7 @@ NS_CC_BEGIN
 class CC_DLL PageTurn3D : public Grid3DAction
 {
 public:
+    virtual GridBase* getGrid();
     /** create the action */
     static PageTurn3D* create(float duration, const Size& gridSize);
 

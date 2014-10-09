@@ -25,13 +25,13 @@
 #ifndef __CCPHYSICS_WORLD_H__
 #define __CCPHYSICS_WORLD_H__
 
-#include "ccConfig.h"
+#include "base/ccConfig.h"
 #if CC_USE_PHYSICS
 
-#include "CCVector.h"
-#include "CCRef.h"
-#include "CCGeometry.h"
-
+#include "base/CCVector.h"
+#include "base/CCRef.h"
+#include "math/CCGeometry.h"
+#include "physics/CCPhysicsBody.h"
 #include <list>
 
 NS_CC_BEGIN
@@ -42,7 +42,7 @@ class PhysicsWorldInfo;
 class PhysicsShape;
 class PhysicsContact;
 
-typedef Point Vect;
+typedef Vec2 Vect;
 
 class Node;
 class Sprite;
@@ -55,9 +55,9 @@ class PhysicsWorld;
 typedef struct PhysicsRayCastInfo
 {
     PhysicsShape* shape;
-    Point start;
-    Point end;              //< in lua, it's name is "ended"
-    Point contact;
+    Vec2 start;
+    Vec2 end;              //< in lua, it's name is "ended"
+    Vec2 contact;
     Vect normal;
     float fraction;
     void* data;
@@ -80,7 +80,7 @@ typedef PhysicsQueryRectCallbackFunc PhysicsQueryPointCallbackFunc;
 /**
  * @brief An PhysicsWorld object simulates collisions and other physical properties. You do not create PhysicsWorld objects directly; instead, you can get it from an Scene object.
  */
-class PhysicsWorld
+class CC_DLL PhysicsWorld
 {
 public:
     static const int DEBUGDRAW_NONE;        ///< draw nothing
@@ -105,15 +105,15 @@ public:
     virtual void removeAllBodies();
     
     /** Searches for physics shapes that intersects the ray. */
-    void rayCast(PhysicsRayCastCallbackFunc func, const Point& start, const Point& end, void* data);
+    void rayCast(PhysicsRayCastCallbackFunc func, const Vec2& start, const Vec2& end, void* data);
     /** Searches for physics shapes that contains in the rect. */
     void queryRect(PhysicsQueryRectCallbackFunc func, const Rect& rect, void* data);
     /** Searches for physics shapes that contains the point. */
-    void queryPoint(PhysicsQueryPointCallbackFunc func, const Point& point, void* data);
+    void queryPoint(PhysicsQueryPointCallbackFunc func, const Vec2& point, void* data);
     /** Get phsyics shapes that contains the point. */
-    Vector<PhysicsShape*> getShapes(const Point& point) const;
+    Vector<PhysicsShape*> getShapes(const Vec2& point) const;
     /** return physics shape that contains the point. */
-    PhysicsShape* getShape(const Point& point) const;
+    PhysicsShape* getShape(const Vec2& point) const;
     /** Get all the bodys that in the physics world. */
     const Vector<PhysicsBody*>& getAllBodies() const;
     /** Get body by tag */
@@ -125,23 +125,49 @@ public:
     inline Vect getGravity() const { return _gravity; }
     /** set the gravity value */
     void setGravity(const Vect& gravity);
-    /** Set the speed of physics world, speed is the rate at which the simulation executes. default value is 1.0 */
+    /**
+     * Set the speed of physics world, speed is the rate at which the simulation executes. default value is 1.0
+     * Note: if you setAutoStep(false), this won't work.
+     */
     inline void setSpeed(float speed) { if(speed >= 0.0f) { _speed = speed; } }
     /** get the speed of physics world */
     inline float getSpeed() { return _speed; }
-    /** 
+    /**
      * set the update rate of physics world, update rate is the value of EngineUpdateTimes/PhysicsWorldUpdateTimes.
      * set it higher can improve performance, set it lower can improve accuracy of physics world simulation.
      * default value is 1.0
+     * Note: if you setAutoStep(false), this won't work.
      */
     inline void setUpdateRate(int rate) { if(rate > 0) { _updateRate = rate; } }
     /** get the update rate */
     inline int getUpdateRate() { return _updateRate; }
-    
+    /**
+     * set the number of substeps in an update of the physics world.
+     * One physics update will be divided into several substeps to increase its accuracy.
+     * default value is 1
+     */
+    void setSubsteps(int steps);
+    /** get the number of substeps */
+    inline int getSubsteps() const { return _substeps; }
+
     /** set the debug draw mask */
     void setDebugDrawMask(int mask);
     /** get the bebug draw mask */
     inline int getDebugDrawMask() { return _debugDrawMask; }
+    
+    /**
+     * To control the step of physics, if you want control it by yourself( fixed-timestep for example ), you can set this to false and call step by yourself.
+     * Defaut value is true.
+     * Note: if you set auto step to false, setSpeed setSubsteps and setUpdateRate won't work, you need to control the time step by yourself.
+     */
+    void setAutoStep(bool autoStep){ _autoStep = autoStep; }
+    /** Get the auto step */
+    bool isAutoStep() { return _autoStep; }
+    /**
+     * The step for physics world, The times passing for simulate the physics.
+     * Note: you need to setAutoStep(false) first before it can work.
+     */
+    void step(float delta);
     
 protected:
     static PhysicsWorld* construct(Scene& scene);
@@ -150,7 +176,7 @@ protected:
     virtual void addBody(PhysicsBody* body);
     virtual void addShape(PhysicsShape* shape);
     virtual void removeShape(PhysicsShape* shape);
-    virtual void update(float delta);
+    virtual void update(float delta, bool userCall = false);
     
     virtual void debugDraw();
     
@@ -176,6 +202,7 @@ protected:
     int _updateRate;
     int _updateRateCount;
     float _updateTime;
+    int _substeps;
     PhysicsWorldInfo* _info;
     
     Vector<PhysicsBody*> _bodies;
@@ -183,6 +210,7 @@ protected:
     Scene* _scene;
     
     bool _delayDirty;
+    bool _autoStep;
     PhysicsDebugDraw* _debugDraw;
     int _debugDrawMask;
     
@@ -207,7 +235,7 @@ protected:
 };
 
 
-class PhysicsDebugDraw
+class CC_DLL PhysicsDebugDraw
 {
 protected:
     virtual bool begin();
@@ -226,7 +254,7 @@ protected:
     
     friend class PhysicsWorld;
 };
-extern const float PHYSICS_INFINITY;
+extern const float CC_DLL PHYSICS_INFINITY;
 
 NS_CC_END
 

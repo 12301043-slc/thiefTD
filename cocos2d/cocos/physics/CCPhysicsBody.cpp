@@ -21,7 +21,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#include "CCPhysicsBody.h"
+#include "physics/CCPhysicsBody.h"
 #if CC_USE_PHYSICS
 
 #include <climits>
@@ -30,11 +30,11 @@
 
 #include "chipmunk.h"
 
-#include "CCNode.h"
+#include "2d/CCScene.h"
 
-#include "CCPhysicsShape.h"
-#include "CCPhysicsJoint.h"
-#include "CCPhysicsWorld.h"
+#include "physics/CCPhysicsShape.h"
+#include "physics/CCPhysicsJoint.h"
+#include "physics/CCPhysicsWorld.h"
 
 #include "chipmunk/CCPhysicsBodyInfo_chipmunk.h"
 #include "chipmunk/CCPhysicsJointInfo_chipmunk.h"
@@ -69,10 +69,6 @@ PhysicsBody::PhysicsBody()
 , _linearDamping(0.0f)
 , _angularDamping(0.0f)
 , _tag(0)
-, _categoryBitmask(UINT_MAX)
-, _collisionBitmask(0)
-, _contactTestBitmask(UINT_MAX)
-, _group(0)
 , _positionResetTag(false)
 , _rotationResetTag(false)
 , _rotationOffset(0)
@@ -95,7 +91,7 @@ PhysicsBody::~PhysicsBody()
 
 PhysicsBody* PhysicsBody::create()
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->autorelease();
@@ -108,7 +104,7 @@ PhysicsBody* PhysicsBody::create()
 
 PhysicsBody* PhysicsBody::create(float mass)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body)
     {
         body->_mass = mass;
@@ -126,7 +122,7 @@ PhysicsBody* PhysicsBody::create(float mass)
 
 PhysicsBody* PhysicsBody::create(float mass, float moment)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body)
     {
         body->_mass = mass;
@@ -145,9 +141,9 @@ PhysicsBody* PhysicsBody::create(float mass, float moment)
     
 }
 
-PhysicsBody* PhysicsBody::createCircle(float radius, const PhysicsMaterial& material, const Point& offset)
+PhysicsBody* PhysicsBody::createCircle(float radius, const PhysicsMaterial& material, const Vec2& offset)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->addShape(PhysicsShapeCircle::create(radius, material, offset));
@@ -159,9 +155,9 @@ PhysicsBody* PhysicsBody::createCircle(float radius, const PhysicsMaterial& mate
     return nullptr;
 }
 
-PhysicsBody* PhysicsBody::createBox(const Size& size, const PhysicsMaterial& material, const Point& offset)
+PhysicsBody* PhysicsBody::createBox(const Size& size, const PhysicsMaterial& material, const Vec2& offset)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->addShape(PhysicsShapeBox::create(size, material, offset));
@@ -173,9 +169,9 @@ PhysicsBody* PhysicsBody::createBox(const Size& size, const PhysicsMaterial& mat
     return nullptr;
 }
 
-PhysicsBody* PhysicsBody::createPolygon(const Point* points, int count, const PhysicsMaterial& material, const Point& offset)
+PhysicsBody* PhysicsBody::createPolygon(const Vec2* points, int count, const PhysicsMaterial& material, const Vec2& offset)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->addShape(PhysicsShapePolygon::create(points, count, material, offset));
@@ -187,9 +183,9 @@ PhysicsBody* PhysicsBody::createPolygon(const Point* points, int count, const Ph
     return nullptr;
 }
 
-PhysicsBody* PhysicsBody::createEdgeSegment(const Point& a, const Point& b, const PhysicsMaterial& material, float border/* = 1*/)
+PhysicsBody* PhysicsBody::createEdgeSegment(const Vec2& a, const Vec2& b, const PhysicsMaterial& material, float border/* = 1*/)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->addShape(PhysicsShapeEdgeSegment::create(a, b, material, border));
@@ -202,9 +198,9 @@ PhysicsBody* PhysicsBody::createEdgeSegment(const Point& a, const Point& b, cons
     return nullptr;
 }
 
-PhysicsBody* PhysicsBody::createEdgeBox(const Size& size, const PhysicsMaterial& material, float border/* = 1*/, const Point& offset)
+PhysicsBody* PhysicsBody::createEdgeBox(const Size& size, const PhysicsMaterial& material, float border/* = 1*/, const Vec2& offset)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->addShape(PhysicsShapeEdgeBox::create(size, material, border, offset));
@@ -218,9 +214,9 @@ PhysicsBody* PhysicsBody::createEdgeBox(const Size& size, const PhysicsMaterial&
     return nullptr;
 }
 
-PhysicsBody* PhysicsBody::createEdgePolygon(const Point* points, int count, const PhysicsMaterial& material, float border/* = 1*/)
+PhysicsBody* PhysicsBody::createEdgePolygon(const Vec2* points, int count, const PhysicsMaterial& material, float border/* = 1*/)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->addShape(PhysicsShapeEdgePolygon::create(points, count, material, border));
@@ -234,9 +230,9 @@ PhysicsBody* PhysicsBody::createEdgePolygon(const Point* points, int count, cons
     return nullptr;
 }
 
-PhysicsBody* PhysicsBody::createEdgeChain(const Point* points, int count, const PhysicsMaterial& material, float border/* = 1*/)
+PhysicsBody* PhysicsBody::createEdgeChain(const Vec2* points, int count, const PhysicsMaterial& material, float border/* = 1*/)
 {
-    PhysicsBody* body = new PhysicsBody();
+    PhysicsBody* body = new (std::nothrow) PhysicsBody();
     if (body && body->init())
     {
         body->addShape(PhysicsShapeEdgeChain::create(points, count, material, border));
@@ -254,7 +250,7 @@ bool PhysicsBody::init()
 {
     do
     {
-        _info = new PhysicsBodyInfo();
+        _info = new (std::nothrow) PhysicsBodyInfo();
         CC_BREAK_IF(_info == nullptr);
         
         _info->setBody(cpBodyNew(PhysicsHelper::float2cpfloat(_mass), PhysicsHelper::float2cpfloat(_moment)));
@@ -345,23 +341,49 @@ void PhysicsBody::setGravityEnable(bool enable)
     }
 }
 
-void PhysicsBody::setPosition(Point position)
+void PhysicsBody::setPosition(const Vec2& position)
 {
-    if (!_positionResetTag)
-    {
-        cpBodySetPos(_info->getBody(), PhysicsHelper::point2cpv(position + _positionOffset));
-    }
+    cpBodySetPos(_info->getBody(), PhysicsHelper::point2cpv(position + _positionOffset));
 }
 
 void PhysicsBody::setRotation(float rotation)
 {
-    if (!_rotationResetTag)
+    cpBodySetAngle(_info->getBody(), -PhysicsHelper::float2cpfloat((rotation + _rotationOffset) * (M_PI / 180.0f)));
+}
+
+void PhysicsBody::setScale(float scale)
+{
+    for (auto shape : _shapes)
     {
-        cpBodySetAngle(_info->getBody(), -PhysicsHelper::float2cpfloat((rotation + _rotationOffset) * (M_PI / 180.0f)));
+        shape->setScale(scale);
     }
 }
 
-Point PhysicsBody::getPosition() const
+void PhysicsBody::setScale(float scaleX, float scaleY)
+{
+    for (auto shape : _shapes)
+    {
+        shape->setScale(scaleX, scaleY);
+    }
+}
+
+void PhysicsBody::setScaleX(float scaleX)
+{
+    for (auto shape : _shapes)
+    {
+        shape->setScaleX(scaleX);
+    }
+}
+
+void PhysicsBody::setScaleY(float scaleY)
+{
+    for (auto shape : _shapes)
+    {
+        shape->setScaleY(scaleY);
+    }
+}
+
+Vec2 PhysicsBody::getPosition() const
 {
     cpVect vec = cpBodyGetPos(_info->getBody());
     return PhysicsHelper::cpv2point(vec) - _positionOffset;
@@ -396,11 +418,6 @@ PhysicsShape* PhysicsBody::addShape(PhysicsShape* shape, bool addMassAndMoment/*
         }
         
         _shapes.pushBack(shape);
-        
-        if (_group != CP_NO_GROUP && shape->getGroup() == CP_NO_GROUP)
-        {
-            shape->setGroup(_group);
-        }
     }
     
     return shape;
@@ -408,10 +425,10 @@ PhysicsShape* PhysicsBody::addShape(PhysicsShape* shape, bool addMassAndMoment/*
 
 void PhysicsBody::applyForce(const Vect& force)
 {
-    applyForce(force, Point::ZERO);
+    applyForce(force, Vec2::ZERO);
 }
 
-void PhysicsBody::applyForce(const Vect& force, const Point& offset)
+void PhysicsBody::applyForce(const Vect& force, const Vec2& offset)
 {
     if (_dynamic && _mass != PHYSICS_INFINITY)
     {
@@ -432,10 +449,10 @@ void PhysicsBody::resetForces()
 
 void PhysicsBody::applyImpulse(const Vect& impulse)
 {
-    applyImpulse(impulse, Point());
+    applyImpulse(impulse, Vec2());
 }
 
-void PhysicsBody::applyImpulse(const Vect& impulse, const Point& offset)
+void PhysicsBody::applyImpulse(const Vect& impulse, const Vec2& offset)
 {
     cpBodyApplyImpulse(_info->getBody(), PhysicsHelper::point2cpv(impulse), PhysicsHelper::point2cpv(offset));
 }
@@ -569,7 +586,7 @@ void PhysicsBody::addMoment(float moment)
     }
 }
 
-void PhysicsBody::setVelocity(const Point& velocity)
+void PhysicsBody::setVelocity(const Vec2& velocity)
 {
     if (!_dynamic)
     {
@@ -580,17 +597,17 @@ void PhysicsBody::setVelocity(const Point& velocity)
     cpBodySetVel(_info->getBody(), PhysicsHelper::point2cpv(velocity));
 }
 
-Point PhysicsBody::getVelocity()
+Vec2 PhysicsBody::getVelocity()
 {
     return PhysicsHelper::cpv2point(cpBodyGetVel(_info->getBody()));
 }
 
-Point PhysicsBody::getVelocityAtLocalPoint(const Point& point)
+Vec2 PhysicsBody::getVelocityAtLocalPoint(const Vec2& point)
 {
     return PhysicsHelper::cpv2point(cpBodyGetVelAtLocalPoint(_info->getBody(), PhysicsHelper::point2cpv(point)));
 }
 
-Point PhysicsBody::getVelocityAtWorldPoint(const Point& point)
+Vec2 PhysicsBody::getVelocityAtWorldPoint(const Vec2& point)
 {
     return PhysicsHelper::cpv2point(cpBodyGetVelAtWorldPoint(_info->getBody(), PhysicsHelper::point2cpv(point)));
 }
@@ -769,13 +786,25 @@ void PhysicsBody::update(float delta)
 {
     if (_node != nullptr)
     {
-        Node* parent = _node->getParent();
+        for (auto shape : _shapes)
+        {
+            shape->update(delta);
+        }
         
-        Point position = parent != nullptr ? parent->convertToNodeSpace(getPosition()) : getPosition();
+        Node* parent = _node->getParent();
+        Node* scene = &_world->getScene();
+        
+        Vec2 position = parent != scene ? parent->convertToNodeSpace(scene->convertToWorldSpace(getPosition())) : getPosition();
+        float rotation = getRotation();
+        for (; parent != scene; parent = parent->getParent())
+        {
+            rotation -= parent->getRotation();
+        }
+        
         _positionResetTag = true;
         _rotationResetTag = true;
         _node->setPosition(position);
-        _node->setRotation(getRotation());
+        _node->setRotation(rotation);
         _positionResetTag = false;
         _rotationResetTag = false;
         
@@ -791,31 +820,61 @@ void PhysicsBody::update(float delta)
 
 void PhysicsBody::setCategoryBitmask(int bitmask)
 {
-    _categoryBitmask = bitmask;
-    
     for (auto& shape : _shapes)
     {
         shape->setCategoryBitmask(bitmask);
     }
 }
 
+int PhysicsBody::getCategoryBitmask() const
+{
+    if (!_shapes.empty())
+    {
+        return _shapes.front()->getCategoryBitmask();
+    }
+    else
+    {
+        return UINT_MAX;
+    }
+}
+
 void PhysicsBody::setContactTestBitmask(int bitmask)
 {
-    _contactTestBitmask = bitmask;
-    
     for (auto& shape : _shapes)
     {
         shape->setContactTestBitmask(bitmask);
     }
 }
 
+int PhysicsBody::getContactTestBitmask() const
+{
+    if (!_shapes.empty())
+    {
+        return _shapes.front()->getContactTestBitmask();
+    }
+    else
+    {
+        return 0x00000000;
+    }
+}
+
 void PhysicsBody::setCollisionBitmask(int bitmask)
 {
-    _collisionBitmask = bitmask;
-    
     for (auto& shape : _shapes)
     {
         shape->setCollisionBitmask(bitmask);
+    }
+}
+
+int PhysicsBody::getCollisionBitmask() const
+{
+    if (!_shapes.empty())
+    {
+        return _shapes.front()->getCollisionBitmask();
+    }
+    else
+    {
+        return UINT_MAX;
     }
 }
 
@@ -827,17 +886,29 @@ void PhysicsBody::setGroup(int group)
     }
 }
 
-void PhysicsBody::setPositionOffset(const Point& position)
+int PhysicsBody::getGroup() const
+{
+    if (!_shapes.empty())
+    {
+        return _shapes.front()->getGroup();
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void PhysicsBody::setPositionOffset(const Vec2& position)
 {
     if (!_positionOffset.equals(position))
     {
-        Point pos = getPosition();
+        Vec2 pos = getPosition();
         _positionOffset = position;
         setPosition(pos);
     }
 }
 
-Point PhysicsBody::getPositionOffset() const
+Vec2 PhysicsBody::getPositionOffset() const
 {
     return _positionOffset;
 }
@@ -857,12 +928,12 @@ float PhysicsBody::getRotationOffset() const
     return _rotationOffset;
 }
 
-Point PhysicsBody::world2Local(const Point& point)
+Vec2 PhysicsBody::world2Local(const Vec2& point)
 {
     return PhysicsHelper::cpv2point(cpBodyWorld2Local(_info->getBody(), PhysicsHelper::point2cpv(point)));
 }
 
-Point PhysicsBody::local2World(const Point& point)
+Vec2 PhysicsBody::local2World(const Vec2& point)
 {
     return PhysicsHelper::cpv2point(cpBodyLocal2World(_info->getBody(), PhysicsHelper::point2cpv(point)));
 }

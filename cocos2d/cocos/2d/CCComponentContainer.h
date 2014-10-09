@@ -25,7 +25,7 @@ THE SOFTWARE.
 #ifndef __CC_FRAMEWORK_COMCONTAINER_H__
 #define __CC_FRAMEWORK_COMCONTAINER_H__
 
-#include "CCMap.h"
+#include "base/CCMap.h"
 #include <string>
 
 NS_CC_BEGIN
@@ -50,6 +50,7 @@ public:
     virtual Component* get(const std::string& name) const;
     virtual bool add(Component *com);
     virtual bool remove(const std::string& name);
+    virtual bool remove(Component *com);
     virtual void removeAll();
     virtual void visit(float delta);
 public:

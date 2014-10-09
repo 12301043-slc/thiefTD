@@ -26,18 +26,12 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "CCAtlasNode.h"
-#include "CCTextureAtlas.h"
-#include "CCTextureCache.h"
-#include "CCDirector.h"
-#include "CCGLProgram.h"
-#include "CCShaderCache.h"
-#include "ccGLStateCache.h"
-#include "CCDirector.h"
-#include "TransformUtils.h"
+#include "renderer/CCTextureAtlas.h"
+#include "base/CCDirector.h"
+#include "base/CCDirector.h"
+#include "renderer/CCTextureCache.h"
 #include "renderer/CCRenderer.h"
-
-// external
-#include "kazmath/GL/matrix.h"
+#include "renderer/CCGLProgram.h"
 
 NS_CC_BEGIN
 
@@ -65,7 +59,7 @@ AtlasNode::~AtlasNode()
 
 AtlasNode * AtlasNode::create(const std::string& tile, int tileWidth, int tileHeight, int itemsToRender)
 {
-	AtlasNode * ret = new AtlasNode();
+	AtlasNode * ret = new (std::nothrow) AtlasNode();
 	if (ret->initWithTileFile(tile, tileWidth, tileHeight, itemsToRender))
 	{
 		ret->autorelease();
@@ -92,7 +86,7 @@ bool AtlasNode::initWithTexture(Texture2D* texture, int tileWidth, int tileHeigh
 
     _blendFunc = BlendFunc::ALPHA_PREMULTIPLIED;
 
-    _textureAtlas = new TextureAtlas();
+    _textureAtlas = new (std::nothrow) TextureAtlas();
     _textureAtlas->initWithTexture(texture, itemsToRender);
 
     if (! _textureAtlas)
@@ -109,7 +103,7 @@ bool AtlasNode::initWithTexture(Texture2D* texture, int tileWidth, int tileHeigh
     _quadsToDraw = itemsToRender;
 
     // shader stuff
-    setShaderProgram(ShaderCache::getInstance()->getProgram(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP));
+    setGLProgramState(GLProgramState::getOrCreateWithGLProgramName(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP));
 
     return true;
 }
@@ -136,12 +130,12 @@ void AtlasNode::updateAtlasValues()
 }
 
 // AtlasNode - draw
-void AtlasNode::draw(Renderer *renderer, const kmMat4 &transform, bool transformUpdated)
+void AtlasNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
 {
     _quadCommand.init(
               _globalZOrder,
               _textureAtlas->getTexture()->getName(),
-              _shaderProgram,
+              getGLProgramState(),
               _blendFunc,
               _textureAtlas->getQuads(),
               _quadsToDraw,

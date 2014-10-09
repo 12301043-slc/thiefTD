@@ -25,13 +25,16 @@
 #ifndef __CCPHYSICS_SHAPE_INFO_CHIPMUNK_H__
 #define __CCPHYSICS_SHAPE_INFO_CHIPMUNK_H__
 
-#include "ccConfig.h"
+#include "base/ccConfig.h"
 #if CC_USE_PHYSICS
 
 #include <vector>
 #include <unordered_map>
-#include "chipmunk.h"
-#include "CCPlatformMacros.h"
+#include "platform/CCPlatformMacros.h"
+
+typedef uintptr_t cpGroup;
+struct cpShape;
+struct cpBody;
 
 NS_CC_BEGIN
 

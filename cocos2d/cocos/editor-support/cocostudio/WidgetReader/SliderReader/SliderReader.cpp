@@ -2,13 +2,23 @@
 
 #include "SliderReader.h"
 #include "ui/UISlider.h"
+#include "cocostudio/CocoLoader.h"
 
 USING_NS_CC;
 using namespace ui;
 
 namespace cocostudio
 {
-    static SliderReader* instanceSliderReader = NULL;
+    static const char* P_Scale9Enable = "scale9Enable";
+    static const char* P_Percent = "percent";
+    static const char* P_BarFileNameData = "barFileNameData";
+    static const char* P_Length = "length";
+    static const char* P_BallNormalData = "ballNormalData";
+    static const char* P_BallPressedData = "ballPressedData";
+    static const char* P_BallDisabledData = "ballDisabledData";
+    static const char* P_ProgressBarData = "progressBarData";
+    
+    static SliderReader* instanceSliderReader = nullptr;
     
     IMPLEMENT_CLASS_WIDGET_READER_INFO(SliderReader)
     
@@ -26,168 +36,152 @@ namespace cocostudio
     {
         if (!instanceSliderReader)
         {
-            instanceSliderReader = new SliderReader();
+            instanceSliderReader = new (std::nothrow) SliderReader();
         }
         return instanceSliderReader;
+    }
+    
+    void SliderReader::setPropsFromBinary(cocos2d::ui::Widget *widget, CocoLoader *cocoLoader, stExpCocoNode* cocoNode)
+    {
+        this->beginSetBasicProperties(widget);
+        
+        Slider* slider = static_cast<Slider*>(widget);
+        
+        float barLength = 0.0f;
+        int percent = slider->getPercent();
+        stExpCocoNode *stChildArray = cocoNode->GetChildArray(cocoLoader);
+        
+        for (int i = 0; i < cocoNode->GetChildNum(); ++i) {
+            std::string key = stChildArray[i].GetName(cocoLoader);
+            std::string value = stChildArray[i].GetValue(cocoLoader);
+            
+            //read all basic properties of widget
+            CC_BASIC_PROPERTY_BINARY_READER
+            //read all color related properties of widget
+            CC_COLOR_PROPERTY_BINARY_READER
+            
+            //control custom properties
+            else if (key == P_Scale9Enable) {
+                slider->setScale9Enabled(valueToBool(value));
+            }
+            else if(key == P_Percent){
+                percent = valueToInt(value);
+            }else if(key == P_BarFileNameData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                slider->loadBarTexture(backgroundValue, imageFileNameType);
+                
+            }else if(key == P_Length){
+                barLength = valueToFloat(value);
+            }else if(key == P_BallNormalData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                slider->loadSlidBallTextureNormal(backgroundValue, imageFileNameType);
+
+            }else if(key == P_BallPressedData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                slider->loadSlidBallTexturePressed(backgroundValue, imageFileNameType);
+                
+            }else if(key == P_BallDisabledData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                slider->loadSlidBallTextureDisabled(backgroundValue, imageFileNameType);
+                
+            }else if(key == P_ProgressBarData){
+                stExpCocoNode *backGroundChildren = stChildArray[i].GetChildArray(cocoLoader);
+                std::string resType = backGroundChildren[2].GetValue(cocoLoader);;
+                
+                Widget::TextureResType imageFileNameType = (Widget::TextureResType)valueToInt(resType);
+                
+                std::string backgroundValue = this->getResourcePath(cocoLoader, &stChildArray[i], imageFileNameType);
+                
+                slider->loadProgressBarTexture(backgroundValue, imageFileNameType);
+                
+            }
+            
+        } //end of for loop
+        
+        if (slider->isScale9Enabled()) {
+            slider->setContentSize(Size(barLength, slider->getContentSize().height));
+        }
+        slider->setPercent(percent);
+        
+        this->endSetBasicProperties(widget);
     }
     
     void SliderReader::setPropsFromJsonDictionary(Widget *widget, const rapidjson::Value &options)
     {
         WidgetReader::setPropsFromJsonDictionary(widget, options);
         
-        
-        std::string jsonPath = GUIReader::getInstance()->getFilePath();
-        
+                
         Slider* slider = static_cast<Slider*>(widget);
         
-        bool barTextureScale9Enable = DICTOOL->getBooleanValue_json(options, "scale9Enable");
+        bool barTextureScale9Enable = DICTOOL->getBooleanValue_json(options, P_Scale9Enable);
         slider->setScale9Enabled(barTextureScale9Enable);
-        bool bt = DICTOOL->checkObjectExist_json(options, "barFileName");
-        float barLength = DICTOOL->getFloatValue_json(options, "length");
-        if (bt)
+        
+        slider->setPercent(DICTOOL->getIntValue_json(options, P_Percent));
+
+        
+//        bool bt = DICTOOL->checkObjectExist_json(options, P_BarFileName);
+        float barLength = DICTOOL->getFloatValue_json(options, P_Length,290);
+        const rapidjson::Value& imageFileNameDic = DICTOOL->getSubDictionary_json(options, P_BarFileNameData);
+        int imageFileNameType = DICTOOL->getIntValue_json(imageFileNameDic, P_ResourceType);
+        std::string imageFileName = this->getResourcePath(imageFileNameDic, P_Path, (Widget::TextureResType)imageFileNameType);
+        slider->loadBarTexture(imageFileName, (Widget::TextureResType)imageFileNameType);
+            
+           
+        
+        if (barTextureScale9Enable)
         {
-            if (barTextureScale9Enable)
-            {
-                
-                const rapidjson::Value& imageFileNameDic = DICTOOL->getSubDictionary_json(options, "barFileNameData");
-                int imageFileType = DICTOOL->getIntValue_json(imageFileNameDic, "resourceType");
-                switch (imageFileType)
-                {
-                    case 0:
-                    {
-                        std::string tp_b = jsonPath;
-                        const char* imageFileName = DICTOOL->getStringValue_json(imageFileNameDic, "path");
-                        const char* imageFileName_tp = (imageFileName && (strcmp(imageFileName, "") != 0))?tp_b.append(imageFileName).c_str():nullptr;
-                        slider->loadBarTexture(imageFileName_tp);
-                        break;
-                    }
-                    case 1:
-                    {
-                        const char* imageFileName =  DICTOOL->getStringValue_json(imageFileNameDic, "path");
-                        slider->loadBarTexture(imageFileName,UI_TEX_TYPE_PLIST);
-                        break;
-                    }
-                    default:
-                        break;
-                }
-                
-                slider->setSize(Size(barLength, slider->getContentSize().height));
-            }
-            else
-            {
-                const rapidjson::Value& imageFileNameDic = DICTOOL->getSubDictionary_json(options, "barFileNameData");
-                int imageFileType = DICTOOL->getIntValue_json(imageFileNameDic, "resourceType");
-                switch (imageFileType)
-                {
-                    case 0:
-                    {
-                        std::string tp_b = jsonPath;
-                        const char*imageFileName =  DICTOOL->getStringValue_json(imageFileNameDic, "path");
-                        const char* imageFileName_tp = (imageFileName && (strcmp(imageFileName, "") != 0))?tp_b.append(imageFileName).c_str():nullptr;
-                        slider->loadBarTexture(imageFileName_tp);
-                        break;
-                    }
-                    case 1:
-                    {
-                        const char*imageFileName =  DICTOOL->getStringValue_json(imageFileNameDic, "path");
-                        slider->loadBarTexture(imageFileName,UI_TEX_TYPE_PLIST);
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }
+            slider->setContentSize(Size(barLength, slider->getContentSize().height));
         }
         
-        const rapidjson::Value& normalDic = DICTOOL->getSubDictionary_json(options, "ballNormalData");
-        int normalType = DICTOOL->getIntValue_json(normalDic, "resourceType");
-        switch (normalType)
-        {
-            case 0:
-            {
-                std::string tp_n = jsonPath;
-                const char* normalFileName = DICTOOL->getStringValue_json(normalDic, "path");
-                const char* normalFileName_tp = (normalFileName && (strcmp(normalFileName, "") != 0))?tp_n.append(normalFileName).c_str():nullptr;
-                slider->loadSlidBallTextureNormal(normalFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* normalFileName = DICTOOL->getStringValue_json(normalDic, "path");
-                slider->loadSlidBallTextureNormal(normalFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
+        //loading normal slider ball texture
+        const rapidjson::Value& normalDic = DICTOOL->getSubDictionary_json(options, P_BallNormalData);
+        int normalType = DICTOOL->getIntValue_json(normalDic, P_ResourceType);
+        imageFileName = this->getResourcePath(normalDic, P_Path, (Widget::TextureResType)normalType);
+        slider->loadSlidBallTextureNormal(imageFileName, (Widget::TextureResType)normalType);
         
-        const rapidjson::Value& pressedDic = DICTOOL->getSubDictionary_json(options, "ballPressedData");
-        int pressedType = DICTOOL->getIntValue_json(pressedDic, "resourceType");
-        switch (pressedType)
-        {
-            case 0:
-            {
-                std::string tp_p = jsonPath;
-                const char* pressedFileName = DICTOOL->getStringValue_json(pressedDic, "path");
-                const char* pressedFileName_tp = (pressedFileName && (strcmp(pressedFileName, "") != 0))?tp_p.append(pressedFileName).c_str():nullptr;
-                slider->loadSlidBallTexturePressed(pressedFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* pressedFileName = DICTOOL->getStringValue_json(pressedDic, "path");
-                slider->loadSlidBallTexturePressed(pressedFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
         
-        const rapidjson::Value& disabledDic = DICTOOL->getSubDictionary_json(options, "ballDisabledData");
-        int disabledType = DICTOOL->getIntValue_json(disabledDic, "resourceType");
-        switch (disabledType)
-        {
-            case 0:
-            {
-                std::string tp_d = jsonPath;
-                const char* disabledFileName = DICTOOL->getStringValue_json(disabledDic, "path");
-                const char* disabledFileName_tp = (disabledFileName && (strcmp(disabledFileName, "") != 0))?tp_d.append(disabledFileName).c_str():nullptr;
-                slider->loadSlidBallTextureDisabled(disabledFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* disabledFileName = DICTOOL->getStringValue_json(disabledDic, "path");
-                slider->loadSlidBallTextureDisabled(disabledFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
+        //loading slider ball press texture
+        const rapidjson::Value& pressedDic = DICTOOL->getSubDictionary_json(options, P_BallPressedData);
+        int pressedType = DICTOOL->getIntValue_json(pressedDic, P_ResourceType);
+        std::string pressedFileName = this->getResourcePath(pressedDic, P_Path, (Widget::TextureResType)pressedType);
+        slider->loadSlidBallTexturePressed(pressedFileName, (Widget::TextureResType)pressedType);
         
-        slider->setPercent(DICTOOL->getIntValue_json(options, "percent"));
+        //loading silder ball disable texture
+        const rapidjson::Value& disabledDic = DICTOOL->getSubDictionary_json(options, P_BallDisabledData);
+        int disabledType = DICTOOL->getIntValue_json(disabledDic, P_ResourceType);
+        std::string disabledFileName = this->getResourcePath(disabledDic, P_Path, (Widget::TextureResType)disabledType);
+        slider->loadSlidBallTextureDisabled(disabledFileName, (Widget::TextureResType)disabledType);
         
-        const rapidjson::Value& progressBarDic = DICTOOL->getSubDictionary_json(options, "progressBarData");
-        int progressBarType = DICTOOL->getIntValue_json(progressBarDic, "resourceType");
-        switch (progressBarType)
-        {
-            case 0:
-            {
-                std::string tp_b = jsonPath;
-                const char* imageFileName = DICTOOL->getStringValue_json(progressBarDic, "path");
-                const char* imageFileName_tp = (imageFileName && (strcmp(imageFileName, "") != 0))?tp_b.append(imageFileName).c_str():nullptr;
-                slider->loadProgressBarTexture(imageFileName_tp);
-                break;
-            }
-            case 1:
-            {
-                const char* imageFileName = DICTOOL->getStringValue_json(progressBarDic, "path");
-                slider->loadProgressBarTexture(imageFileName,UI_TEX_TYPE_PLIST);
-                break;
-            }
-            default:
-                break;
-        }
+        //load slider progress texture
+        const rapidjson::Value& progressBarDic = DICTOOL->getSubDictionary_json(options, P_ProgressBarData);
+        int progressBarType = DICTOOL->getIntValue_json(progressBarDic, P_ResourceType);
+        std::string progressBarFileName = this->getResourcePath(progressBarDic, P_Path, (Widget::TextureResType)progressBarType);
+        slider->loadProgressBarTexture(progressBarFileName, (Widget::TextureResType)progressBarType);
+        
         
         
         WidgetReader::setColorPropsFromJsonDictionary(widget, options);

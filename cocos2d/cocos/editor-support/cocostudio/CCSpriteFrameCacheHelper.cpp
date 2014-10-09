@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 #include "cocostudio/CCSpriteFrameCacheHelper.h"
 
-#include "CCSpriteFrameCache.h"
+#include "2d/CCSpriteFrameCache.h"
 
 using namespace cocos2d;
 
@@ -37,7 +37,7 @@ SpriteFrameCacheHelper *SpriteFrameCacheHelper::getInstance()
 {
     if(!_spriteFrameCacheHelper)
     {
-        _spriteFrameCacheHelper = new SpriteFrameCacheHelper();
+        _spriteFrameCacheHelper = new (std::nothrow) SpriteFrameCacheHelper();
     }
 
     return _spriteFrameCacheHelper;

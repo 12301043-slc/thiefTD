@@ -25,19 +25,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "CCActionCamera.h"
-#include "CCNode.h"
-#include "CCStdC.h"
+#include "2d/CCActionCamera.h"
+#include "2d/CCNode.h"
+#include "platform/CCStdC.h"
 
 NS_CC_BEGIN
 //
 // CameraAction
 //
 ActionCamera::ActionCamera()
+: _center(0, 0, 0)
+, _eye(0, 0, FLT_EPSILON)
+, _up(0, 1, 0)
 {
-    kmVec3Fill(&_center, 0, 0, 0);
-    kmVec3Fill(&_eye, 0, 0, FLT_EPSILON);
-    kmVec3Fill(&_up, 0, 1, 0);
 }
 void ActionCamera::startWithTarget(Node *target)
 {
@@ -47,7 +47,7 @@ void ActionCamera::startWithTarget(Node *target)
 ActionCamera* ActionCamera::clone() const
 {
 	// no copy constructor
-	auto a = new ActionCamera();
+	auto a = new (std::nothrow) ActionCamera();
 	a->autorelease();
 	return a;
 }
@@ -60,12 +60,12 @@ ActionCamera * ActionCamera::reverse() const
 
 void ActionCamera::restore()
 {
-    kmVec3Fill(&_center, 0, 0, 0);
-    kmVec3Fill(&_eye, 0, 0, FLT_EPSILON);
-    kmVec3Fill(&_up, 0, 1, 0);
+    _center = Vec3(0, 0, 0);
+    _eye = Vec3(0, 0, FLT_EPSILON);
+    _up = Vec3(0, 1, 0);
 }
 
-void ActionCamera::setEye(const kmVec3& eye)
+void ActionCamera::setEye(const Vec3& eye)
 {
     _eye = eye;
     updateTransform();
@@ -73,17 +73,17 @@ void ActionCamera::setEye(const kmVec3& eye)
 
 void ActionCamera::setEye(float x, float y, float z)
 {
-    kmVec3Fill(&_eye, x, y, z);
+    _eye = Vec3(x, y, z);
     updateTransform();
 }
 
-void ActionCamera::setCenter(const kmVec3& center)
+void ActionCamera::setCenter(const Vec3& center)
 {
     _center = center;
     updateTransform();
 }
 
-void ActionCamera::setUp(const kmVec3& up)
+void ActionCamera::setUp(const Vec3& up)
 {
     _up = up;
     updateTransform();
@@ -91,32 +91,31 @@ void ActionCamera::setUp(const kmVec3& up)
 
 void ActionCamera::updateTransform()
 {
-    kmMat4 lookupMatrix;
-    kmMat4LookAt(&lookupMatrix, &_eye, &_center, &_up);
+    Mat4 lookupMatrix;
+    Mat4::createLookAt(_eye.x, _eye.y, _eye.z, _center.x, _center.y, _center.z, _up.x, _up.y, _up.z, &lookupMatrix);
 
-    Point anchorPoint = _target->getAnchorPointInPoints();
+    Vec2 anchorPoint = _target->getAnchorPointInPoints();
 
-    bool needsTranslation = !anchorPoint.equals(Point::ZERO);
+    bool needsTranslation = !anchorPoint.equals(Vec2::ZERO);
 
-    kmMat4 mv;
-    kmMat4Identity(&mv);
-
-    if(needsTranslation) {
-        kmMat4 t;
-        kmMat4Translation(&t, anchorPoint.x, anchorPoint.y, 0);
-        kmMat4Multiply(&mv, &mv, &t);
-    }
-
-    kmMat4Multiply(&mv, &mv, &lookupMatrix);
+    Mat4 mv = Mat4::IDENTITY;
 
     if(needsTranslation) {
-        kmMat4 t;
-        kmMat4Translation(&t, -anchorPoint.x, -anchorPoint.y, 0);
-        kmMat4Multiply(&mv, &mv, &t);
+        Mat4 t;
+        Mat4::createTranslation(anchorPoint.x, anchorPoint.y, 0, &t);
+        mv = mv * t;
+    }
+    
+    mv = mv * lookupMatrix;
+
+    if(needsTranslation) {
+        
+        Mat4 t;
+        Mat4::createTranslation(-anchorPoint.x, -anchorPoint.y, 0, &t);
+        mv = mv * t;
     }
 
-    // XXX FIXME TODO
-    // Using the AdditionalTransform is a complete hack.
+    // FIXME: Using the AdditionalTransform is a complete hack.
     // This should be done by multipliying the lookup-Matrix with the Node's MV matrix
     // And then setting the result as the new MV matrix
     // But that operation needs to be done after all the 'updates'.
@@ -148,7 +147,7 @@ OrbitCamera::~OrbitCamera()
 
 OrbitCamera * OrbitCamera::create(float t, float radius, float deltaRadius, float angleZ, float deltaAngleZ, float angleX, float deltaAngleX)
 {
-    OrbitCamera * obitCamera = new OrbitCamera();
+    OrbitCamera * obitCamera = new (std::nothrow) OrbitCamera();
     if(obitCamera->initWithDuration(t, radius, deltaRadius, angleZ, deltaAngleZ, angleX, deltaAngleX))
     {
         obitCamera->autorelease();
@@ -161,7 +160,7 @@ OrbitCamera * OrbitCamera::create(float t, float radius, float deltaRadius, floa
 OrbitCamera* OrbitCamera::clone() const
 {
 	// no copy constructor	
-	auto a = new OrbitCamera();
+	auto a = new (std::nothrow) OrbitCamera();
 	a->initWithDuration(_duration, _radius, _deltaRadius, _angleZ, _deltaAngleZ, _angleX, _deltaAngleX);
 	a->autorelease();
 	return a;

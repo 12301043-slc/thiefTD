@@ -22,8 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "CCComponent.h"
-#include "CCScriptSupport.h"
+#include "2d/CCComponent.h"
 
 
 NS_CC_BEGIN
@@ -110,7 +109,7 @@ bool Component::serialize(void *ar)
 
 Component* Component::create(void)
 {
-    Component * ret = new Component();
+    Component * ret = new (std::nothrow) Component();
     if (ret != nullptr && ret->init())
     {
         ret->autorelease();

@@ -26,12 +26,12 @@
  */
 
 #include "CCControlSwitch.h"
-#include "CCSprite.h"
-#include "CCActionTween.h"
-#include "CCLabel.h"
-#include "CCClippingNode.h"
-#include "ccShaders.h"
-#include "CCRenderTexture.h"
+#include "2d/CCSprite.h"
+#include "2d/CCActionTween.h"
+#include "2d/CCLabel.h"
+#include "2d/CCClippingNode.h"
+#include "renderer/ccShaders.h"
+#include "2d/CCRenderTexture.h"
 
 NS_CC_EXT_BEGIN
 // ControlSwitchSprite
@@ -129,7 +129,7 @@ ControlSwitchSprite* ControlSwitchSprite::create(Sprite *maskSprite,
                                             Label* onLabel,
                                             Label* offLabel)
 {
-    auto ret = new ControlSwitchSprite();
+    auto ret = new (std::nothrow) ControlSwitchSprite();
     ret->initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, onLabel, offLabel);
     ret->autorelease();
     return ret;
@@ -139,14 +139,14 @@ ControlSwitchSprite::ControlSwitchSprite()
 : _sliderXPosition(0.0f)
 , _onPosition(0.0f)
 , _offPosition(0.0f)
-, _maskTexture(NULL)
+, _maskTexture(nullptr)
 , _textureLocation(0)
 , _maskLocation(0)
-, _onSprite(NULL)
-, _offSprite(NULL)
-, _thumbSprite(NULL)
-, _onLabel(NULL)
-, _offLabel(NULL)
+, _onSprite(nullptr)
+, _offSprite(nullptr)
+, _thumbSprite(nullptr)
+, _onLabel(nullptr)
+, _offLabel(nullptr)
 , _clipperStencil(nullptr)
 {
 
@@ -183,10 +183,7 @@ bool ControlSwitchSprite::initWithMaskSprite(
         setThumbSprite(thumbSprite);
         setOnLabel(onLabel);
         setOffLabel(offLabel);
-        //setOnSprite(nullptr);
-        //setOffSprite(nullptr);
-        //setOnLabel(nullptr);
-        //setOffLabel(nullptr);
+
         ClippingNode* clipper = ClippingNode::create();
         _clipperStencil = Sprite::createWithTexture(maskSprite->getTexture());
         _clipperStencil->retain();
@@ -204,27 +201,6 @@ bool ControlSwitchSprite::initWithMaskSprite(
 
         // Set up the mask with the Mask shader
         setMaskTexture(maskSprite->getTexture());
-        GLProgram* program = new GLProgram();
-        program->initWithByteArrays(ccPositionTextureColor_vert, ccExSwitchMask_frag);
-        setShaderProgram(program);
-        program->release();
-
-        CHECK_GL_ERROR_DEBUG();
-
-        program->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
-        program->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
-        program->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORDS);
-        CHECK_GL_ERROR_DEBUG();
-
-        program->link();
-        CHECK_GL_ERROR_DEBUG();
-
-        program->updateUniforms();
-        CHECK_GL_ERROR_DEBUG();                
-
-        _textureLocation = program->getUniformLocation("u_texture");
-        _maskLocation = program->getUniformLocation("u_mask");
-        CHECK_GL_ERROR_DEBUG();
 
         setContentSize(_maskTexture->getContentSize());
 
@@ -236,33 +212,33 @@ bool ControlSwitchSprite::initWithMaskSprite(
 
 void ControlSwitchSprite::updateTweenAction(float value, const std::string& key)
 {
-    CCLOG("key = %s, value = %f", key.c_str(), value);
+    CCLOGINFO("key = %s, value = %f", key.c_str(), value);
     setSliderXPosition(value);
 }
 
 void ControlSwitchSprite::needsLayout()
 {
-    _onSprite->setPosition(Point(_onSprite->getContentSize().width / 2 + _sliderXPosition,
-        _onSprite->getContentSize().height / 2));
-    _offSprite->setPosition(Point(_onSprite->getContentSize().width + _offSprite->getContentSize().width / 2 + _sliderXPosition, 
-        _offSprite->getContentSize().height / 2));
-    _thumbSprite->setPosition(Point(_onSprite->getContentSize().width + _sliderXPosition,
-        _maskTexture->getContentSize().height / 2));
+    _onSprite->setPosition(_onSprite->getContentSize().width / 2 + _sliderXPosition,
+        _onSprite->getContentSize().height / 2);
+    _offSprite->setPosition(_onSprite->getContentSize().width + _offSprite->getContentSize().width / 2 + _sliderXPosition,
+        _offSprite->getContentSize().height / 2);
+    _thumbSprite->setPosition(_onSprite->getContentSize().width + _sliderXPosition,
+        _maskTexture->getContentSize().height / 2);
 
-    _clipperStencil->setPosition(Point(_maskTexture->getContentSize().width/2,
-                                    _maskTexture->getContentSize().height / 2));
+    _clipperStencil->setPosition(_maskTexture->getContentSize().width/2,
+                                    _maskTexture->getContentSize().height / 2);
 
     if (_onLabel)
     {
-        _onLabel->setAnchorPoint(Point::ANCHOR_MIDDLE);
-        _onLabel->setPosition(Point(_onSprite->getPosition().x - _thumbSprite->getContentSize().width / 6,
-            _onSprite->getContentSize().height / 2));
+        _onLabel->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+        _onLabel->setPosition(_onSprite->getPosition().x - _thumbSprite->getContentSize().width / 6,
+            _onSprite->getContentSize().height / 2);
     }
     if (_offLabel)
     {
-        _offLabel->setAnchorPoint(Point::ANCHOR_MIDDLE);
-        _offLabel->setPosition(Point(_offSprite->getPosition().x + _thumbSprite->getContentSize().width / 6,
-            _offSprite->getContentSize().height / 2));
+        _offLabel->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+        _offLabel->setPosition(_offSprite->getPosition().x + _thumbSprite->getContentSize().width / 6,
+            _offSprite->getContentSize().height / 2);
     }
 
     setFlippedY(true);
@@ -300,7 +276,7 @@ float ControlSwitchSprite::offSideWidth()
 // ControlSwitch
 
 ControlSwitch::ControlSwitch()
-: _switchSprite(NULL)
+: _switchSprite(nullptr)
 , _initialTouchXPosition(0.0f)
 , _moved(false)
 , _on(false)
@@ -315,13 +291,13 @@ ControlSwitch::~ControlSwitch()
 
 bool ControlSwitch::initWithMaskSprite(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite)
 {
-    return initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, NULL, NULL);
+    return initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, nullptr, nullptr);
 }
 
 ControlSwitch* ControlSwitch::create(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite)
 {
-    ControlSwitch* pRet = new ControlSwitch();
-    if (pRet && pRet->initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, NULL, NULL))
+    ControlSwitch* pRet = new (std::nothrow) ControlSwitch();
+    if (pRet && pRet->initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, nullptr, nullptr))
     {
         pRet->autorelease();
     }
@@ -350,11 +326,11 @@ bool ControlSwitch::initWithMaskSprite(Sprite *maskSprite, Sprite * onSprite, Sp
                                         onLabel,
                                         offLabel);
         _switchSprite->retain();
-        _switchSprite->setPosition(Point(_switchSprite->getContentSize().width / 2, _switchSprite->getContentSize().height / 2));
+        _switchSprite->setPosition(_switchSprite->getContentSize().width / 2, _switchSprite->getContentSize().height / 2);
         addChild(_switchSprite);
         
         ignoreAnchorPointForPosition(false);
-        setAnchorPoint(Point(0.5f, 0.5f));
+        setAnchorPoint(Vec2(0.5f, 0.5f));
         setContentSize(_switchSprite->getContentSize());
         return true;
     }
@@ -363,7 +339,7 @@ bool ControlSwitch::initWithMaskSprite(Sprite *maskSprite, Sprite * onSprite, Sp
 
 ControlSwitch* ControlSwitch::create(Sprite *maskSprite, Sprite * onSprite, Sprite * offSprite, Sprite * thumbSprite, Label* onLabel, Label* offLabel)
 {
-    ControlSwitch* pRet = new ControlSwitch();
+    ControlSwitch* pRet = new (std::nothrow) ControlSwitch();
     if (pRet && pRet->initWithMaskSprite(maskSprite, onSprite, offSprite, thumbSprite, onLabel, offLabel))
     {
         pRet->autorelease();
@@ -382,7 +358,7 @@ void ControlSwitch::setOn(bool isOn)
 
 void ControlSwitch::setOn(bool isOn, bool animated)
 {
-    _on     = isOn;
+    _on = isOn;
     
     if (animated) {
         _switchSprite->runAction
@@ -406,15 +382,15 @@ void ControlSwitch::setOn(bool isOn, bool animated)
 void ControlSwitch::setEnabled(bool enabled)
 {
     _enabled = enabled;
-    if (_switchSprite != NULL)
+    if (_switchSprite != nullptr)
     {
         _switchSprite->setOpacity((enabled) ? 255 : 128);
     } 
 }
 
-Point ControlSwitch::locationFromTouch(Touch* pTouch)
+Vec2 ControlSwitch::locationFromTouch(Touch* pTouch)
 {
-    Point touchLocation   = pTouch->getLocation();                      // Get the touch position
+    Vec2 touchLocation   = pTouch->getLocation();                      // Get the touch position
     touchLocation           = this->convertToNodeSpace(touchLocation);                  // Convert to the node space of this class
     
     return touchLocation;
@@ -429,7 +405,7 @@ bool ControlSwitch::onTouchBegan(Touch *pTouch, Event *pEvent)
     
     _moved = false;
     
-    Point location = this->locationFromTouch(pTouch);
+    Vec2 location = this->locationFromTouch(pTouch);
     
     _initialTouchXPosition = location.x - _switchSprite->getSliderXPosition();
     
@@ -441,8 +417,8 @@ bool ControlSwitch::onTouchBegan(Touch *pTouch, Event *pEvent)
 
 void ControlSwitch::onTouchMoved(Touch *pTouch, Event *pEvent)
 {
-    Point location    = this->locationFromTouch(pTouch);
-    location            = Point(location.x - _initialTouchXPosition, 0);
+    Vec2 location    = this->locationFromTouch(pTouch);
+    location            = Vec2(location.x - _initialTouchXPosition, 0);
     
     _moved              = true;
     
@@ -451,7 +427,7 @@ void ControlSwitch::onTouchMoved(Touch *pTouch, Event *pEvent)
 
 void ControlSwitch::onTouchEnded(Touch *pTouch, Event *pEvent)
 {
-    Point location   = this->locationFromTouch(pTouch);
+    Vec2 location   = this->locationFromTouch(pTouch);
     
     _switchSprite->getThumbSprite()->setColor(Color3B::WHITE);
     
@@ -467,7 +443,7 @@ void ControlSwitch::onTouchEnded(Touch *pTouch, Event *pEvent)
 
 void ControlSwitch::onTouchCancelled(Touch *pTouch, Event *pEvent)
 {
-    Point location   = this->locationFromTouch(pTouch);
+    Vec2 location   = this->locationFromTouch(pTouch);
     
     _switchSprite->getThumbSprite()->setColor(Color3B::WHITE);
     

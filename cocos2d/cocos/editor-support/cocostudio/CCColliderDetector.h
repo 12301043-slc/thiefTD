@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include "cocostudio/CCArmatureDefine.h"
 #include "cocostudio/CCDatas.h"
+#include "cocostudio/CocosStudioExport.h"
 
 #ifndef PT_RATIO
 #define PT_RATIO 32
@@ -48,7 +49,7 @@ class Bone;
  *  @js NA
  *  @lua NA
  */
-class ColliderFilter
+class CC_STUDIO_DLL ColliderFilter
 {
 public:
     virtual ~ColliderFilter() { }
@@ -85,7 +86,7 @@ protected:
 #endif
 };
 
-class ColliderBody : public cocos2d::Ref
+class CC_STUDIO_DLL ColliderBody : public cocos2d::Ref
 {
 public:
     ColliderBody(ContourData *contourData);
@@ -105,7 +106,7 @@ public:
     virtual void setShape(cpShape *shape) { _shape = shape; }
     virtual cpShape *getShape() const { return _shape; }
 #elif ENABLE_PHYSICS_SAVE_CALCULATED_VERTEX
-    virtual const std::vector<cocos2d::Point> &getCalculatedVertexList() const { return _calculatedVertexList; }
+    virtual const std::vector<cocos2d::Vec2> &getCalculatedVertexList() const { return _calculatedVertexList; }
 #endif
 
 private:
@@ -117,7 +118,7 @@ private:
     cpShape *_shape;
     ColliderFilter *_filter;
 #elif ENABLE_PHYSICS_SAVE_CALCULATED_VERTEX
-    std::vector<cocos2d::Point> _calculatedVertexList;
+    std::vector<cocos2d::Vec2> _calculatedVertexList;
 #endif
 
     ContourData *_contourData;
@@ -130,7 +131,7 @@ private:
  *  @js NA
  *  @lua NA
  */
-class ColliderDetector : public cocos2d::Ref
+class CC_STUDIO_DLL ColliderDetector : public cocos2d::Ref
 {
 public:
     static ColliderDetector *create();
@@ -155,7 +156,7 @@ public:
     void removeContourData(ContourData *contourData);
     void removeAll();
 
-    void updateTransform(kmMat4 &t);
+    void updateTransform(cocos2d::Mat4 &t);
 
     void setActive(bool active);
     bool getActive();

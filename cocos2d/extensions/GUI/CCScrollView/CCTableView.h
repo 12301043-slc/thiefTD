@@ -28,6 +28,7 @@
 
 #include "CCScrollView.h"
 #include "CCTableViewCell.h"
+#include "extensions/ExtensionExport.h"
 
 #include <set>
 #include <vector>
@@ -39,7 +40,7 @@ class TableView;
 /**
  * Sole purpose of this delegate is to single touch event in this version.
  */
-class TableViewDelegate : public ScrollViewDelegate
+class CC_EX_DLL TableViewDelegate : public ScrollViewDelegate
 {
 public:
     /**
@@ -90,7 +91,7 @@ public:
 /**
  * Data source that governs table backend data.
  */
-class TableViewDataSource
+class CC_EX_DLL TableViewDataSource
 {
 public:
     /**
@@ -139,7 +140,7 @@ public:
  *
  * This is a very basic, minimal implementation to bring UITableView-like component into cocos2d world.
  */
-class TableView : public ScrollView, public ScrollViewDelegate
+class CC_EX_DLL TableView : public ScrollView, public ScrollViewDelegate
 {
 public:
     
@@ -273,10 +274,10 @@ public:
     virtual void onTouchCancelled(Touch *pTouch, Event *pEvent) override;
 
 protected:
-    long __indexFromOffset(Point offset);
-    long _indexFromOffset(Point offset);
-    Point __offsetFromIndex(ssize_t index);
-    Point _offsetFromIndex(ssize_t index);
+    long __indexFromOffset(Vec2 offset);
+    long _indexFromOffset(Vec2 offset);
+    Vec2 __offsetFromIndex(ssize_t index);
+    Vec2 _offsetFromIndex(ssize_t index);
 
     void _moveCellOutOfSight(TableViewCell *cell);
     void _setIndexForCell(ssize_t index, TableViewCell *cell);

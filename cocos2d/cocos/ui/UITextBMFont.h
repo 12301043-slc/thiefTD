@@ -26,8 +26,11 @@ THE SOFTWARE.
 #define __UILABELBMFONT_H__
 
 #include "ui/UIWidget.h"
+#include "ui/GUIExport.h"
 
 NS_CC_BEGIN
+
+class Label;
 
 namespace ui {
     
@@ -35,7 +38,7 @@ namespace ui {
 *   @js NA
 *   @lua NA
 */    
-class TextBMFont : public Widget
+class CC_GUI_DLL TextBMFont : public Widget
 {
     
     DECLARE_CLASS_GUI_INFO
@@ -56,16 +59,29 @@ public:
      */
     static TextBMFont* create();
     
+    static TextBMFont* create(const std::string& text, const std::string& filename);
+    
     /** init a bitmap font atlas with an initial string and the FNT file */
-    void setFntFile(const char* fileName);
+    void setFntFile(const std::string& fileName);
     
     /** set string value for labelbmfont*/
-    void setText(const char* value);
+    CC_DEPRECATED_ATTRIBUTE void setText(const std::string& value){this->setString(value);}
+    void setString(const std::string& value);
     
     /** get string value for labelbmfont*/
-    const char* getStringValue();
-    virtual void setAnchorPoint(const Point &pt) override;
-    virtual const Size& getContentSize() const override;
+    CC_DEPRECATED_ATTRIBUTE const std::string& getStringValue()const{return this->getString();}
+    const std::string& getString()const;
+    
+    /**
+     * Gets the string length of the label.
+     * Note: This length will be larger than the raw string length,
+     * if you want to get the raw string length, you should call this->getString().size() instead
+     *
+     * @return  string length.
+     */
+    ssize_t getStringLength()const;
+
+    virtual Size getVirtualRendererSize() const override;
     virtual Node* getVirtualRenderer() override;
     /**
      * Returns the "class name" of widget.
@@ -74,17 +90,17 @@ public:
 protected:
     virtual void initRenderer() override;
     virtual void onSizeChanged() override;
-    virtual void updateTextureColor() override;
-    virtual void updateTextureOpacity() override;
-    virtual void updateTextureRGBA() override;
+   
     void labelBMFontScaleChangedWithSize();
     virtual Widget* createCloneInstance() override;
     virtual void copySpecialProperties(Widget* model) override;
+    virtual void adaptRenderers() override;
 protected:
-    cocos2d::Label* _labelBMFontRenderer;
+    Label* _labelBMFontRenderer;
     bool _fntFileHasInit;
     std::string _fntFileName;
     std::string _stringValue;
+    bool _labelBMFontRendererAdaptDirty;
 };
     
 }

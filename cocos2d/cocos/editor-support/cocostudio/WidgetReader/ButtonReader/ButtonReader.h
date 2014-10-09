@@ -26,10 +26,11 @@
 #define __TestCpp__ButtonReader__
 
 #include "../WidgetReader.h"
+#include "cocostudio/CocosStudioExport.h"
 
 namespace cocostudio
 {
-    class ButtonReader : public WidgetReader
+    class CC_STUDIO_DLL ButtonReader : public WidgetReader
     {
     public:
         DECLARE_CLASS_WIDGET_READER_INFO
@@ -40,7 +41,10 @@ namespace cocostudio
         static ButtonReader* getInstance();
         static void purge();
         
-        virtual void setPropsFromJsonDictionary(cocos2d::ui::Widget* widget, const rapidjson::Value& options);
+        virtual void setPropsFromJsonDictionary(cocos2d::ui::Widget* widget,
+                                                const rapidjson::Value& options);
+        virtual void setPropsFromBinary(cocos2d::ui::Widget* widget, CocoLoader* cocoLoader,  stExpCocoNode*	pCocoNode);
+        
     };
 }
 

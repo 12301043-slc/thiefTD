@@ -117,3 +117,9 @@ void LoadingResScene::logic(float dt)
         SimpleAudioEngine::getInstance()->setBackgroundMusicVolume(0.1f);
     }
 }
+
+LoadingResScene::~LoadingResScene()
+{
+	unscheduleAllSelectors();
+
+}

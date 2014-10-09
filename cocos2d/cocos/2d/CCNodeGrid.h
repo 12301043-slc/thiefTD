@@ -25,8 +25,7 @@
 #ifndef __MISCNODE_CCGRID_NODE_H__
 #define __MISCNODE_CCGRID_NODE_H__
 
-#include "CCNode.h"
-#include "kazmath/GL/matrix.h"
+#include "2d/CCNode.h"
 #include "renderer/CCGroupCommand.h"
 #include "renderer/CCCustomCommand.h"
 
@@ -34,7 +33,7 @@ NS_CC_BEGIN
 
 class GridBase;
 
-class NodeGrid : public Node
+class CC_DLL NodeGrid : public Node
 {
 public:
     static NodeGrid* create();
@@ -55,12 +54,13 @@ public:
     void setTarget(Node *target);
 
     // overrides
-    virtual void visit(Renderer *renderer, const kmMat4 &parentTransform, bool parentTransformUpdated) override;
+    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
 
-protected:
+CC_CONSTRUCTOR_ACCESS:
     NodeGrid();
     virtual ~NodeGrid();
 
+protected:
     void onGridBeginDraw();
     void onGridEndDraw();
 

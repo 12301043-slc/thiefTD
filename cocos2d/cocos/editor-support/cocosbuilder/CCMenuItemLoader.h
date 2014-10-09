@@ -1,8 +1,8 @@
 #ifndef _CCB_CCMENUITEMLOADER_H_
 #define _CCB_CCMENUITEMLOADER_H_
 
-#include "CCRef.h"
-#include "CCMenuItem.h"
+#include "base/CCRef.h"
+#include "2d/CCMenuItem.h"
 
 #include "CCLayerLoader.h"
 
@@ -11,7 +11,7 @@ namespace cocosbuilder {
 /* Forward declaration. */
 class CCBReader;
 
-class MenuItemLoader : public NodeLoader {
+class CC_DLL MenuItemLoader : public NodeLoader {
 public:
     /**
      * @js NA

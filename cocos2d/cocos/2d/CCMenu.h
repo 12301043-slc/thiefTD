@@ -26,13 +26,12 @@ THE SOFTWARE.
 #ifndef __CCMENU_H_
 #define __CCMENU_H_
 
-#include "CCMenuItem.h"
-#include "CCLayer.h"
-#include "CCVector.h"
-#include "CCEventTouch.h"
-#include "CCValue.h"
+#include "2d/CCMenuItem.h"
+#include "2d/CCLayer.h"
+#include "base/CCValue.h"
 
 NS_CC_BEGIN
+class Touch;
 
 /**
  * @addtogroup GUI
@@ -61,7 +60,7 @@ public:
     /** creates an empty Menu */
     static Menu* create();
     
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
     // WP8 in VS2012 does not support nullptr in variable args lists and variadic templates are also not supported
     typedef MenuItem* M;
     static Menu* create(M m1, std::nullptr_t listEnd) { return variadicCreate(m1, NULL); }
@@ -132,6 +131,7 @@ public:
     virtual void addChild(Node * child) override;
     virtual void addChild(Node * child, int zOrder) override;
     virtual void addChild(Node * child, int zOrder, int tag) override;
+    virtual void addChild(Node * child, int zOrder, const std::string &name) override;
     
     virtual void onEnter() override;
     virtual void onExit() override;

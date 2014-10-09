@@ -70,7 +70,7 @@ ColliderBody::ColliderBody(ContourData *contourData)
     , _contourData(contourData)
 {
     CC_SAFE_RETAIN(_contourData);
-    _filter = new ColliderFilter();
+    _filter = new (std::nothrow) ColliderFilter();
 
 #if ENABLE_PHYSICS_SAVE_CALCULATED_VERTEX
     _calculatedVertexList = Array::create();
@@ -84,7 +84,7 @@ ColliderBody::ColliderBody(ContourData *contourData)
     , _contourData(contourData)
 {
     CC_SAFE_RETAIN(_contourData);
-    _filter = new ColliderFilter();
+    _filter = new (std::nothrow) ColliderFilter();
 
 #if ENABLE_PHYSICS_SAVE_CALCULATED_VERTEX
     _calculatedVertexList = Array::create();
@@ -123,7 +123,7 @@ ColliderFilter *ColliderBody::getColliderFilter()
 
 ColliderDetector *ColliderDetector::create()
 {
-    ColliderDetector *pColliderDetector = new ColliderDetector();
+    ColliderDetector *pColliderDetector = new (std::nothrow) ColliderDetector();
     if (pColliderDetector && pColliderDetector->init())
     {
         pColliderDetector->autorelease();
@@ -135,7 +135,7 @@ ColliderDetector *ColliderDetector::create()
 
 ColliderDetector *ColliderDetector::create(Bone *bone)
 {
-    ColliderDetector *pColliderDetector = new ColliderDetector();
+    ColliderDetector *pColliderDetector = new (std::nothrow) ColliderDetector();
     if (pColliderDetector && pColliderDetector->init(bone))
     {
         pColliderDetector->autorelease();
@@ -168,7 +168,7 @@ bool ColliderDetector::init()
     _colliderBodyList.clear();
 
 #if ENABLE_PHYSICS_BOX2D_DETECT || ENABLE_PHYSICS_CHIPMUNK_DETECT
-    _filter = new ColliderFilter();
+    _filter = new (std::nothrow) ColliderFilter();
 #endif
 
     return true;
@@ -184,18 +184,18 @@ bool ColliderDetector::init(Bone *bone)
 
 void ColliderDetector::addContourData(ContourData *contourData)
 {
-    ColliderBody *colliderBody = new ColliderBody(contourData);
+    ColliderBody *colliderBody = new (std::nothrow) ColliderBody(contourData);
     _colliderBodyList.pushBack(colliderBody);
     colliderBody->release();
 
 
 #if ENABLE_PHYSICS_SAVE_CALCULATED_VERTEX
-    std::vector<Point> &calculatedVertexList = colliderBody->_calculatedVertexList;
+    std::vector<Vec2> &calculatedVertexList = colliderBody->_calculatedVertexList;
     
     unsigned long num = contourData->vertexList.size();
     for (unsigned long i = 0; i < num; i++)
     {
-        calculatedVertexList.push_back(Point());
+        calculatedVertexList.push_back(Vec2());
     }
 #endif
 }
@@ -332,9 +332,9 @@ ColliderFilter *ColliderDetector::getColliderFilter()
 #endif
 
 
-Point helpPoint;
+Vec2 helpPoint;
 
-void ColliderDetector::updateTransform(kmMat4 &t)
+void ColliderDetector::updateTransform(Mat4 &t)
 {
     if (!_active)
     {
@@ -361,10 +361,10 @@ void ColliderDetector::updateTransform(kmMat4 &t)
 #endif
 
         unsigned long num = contourData->vertexList.size();
-        std::vector<cocos2d::Point> &vs = contourData->vertexList;
+        std::vector<cocos2d::Vec2> &vs = contourData->vertexList;
 
 #if ENABLE_PHYSICS_SAVE_CALCULATED_VERTEX
-        std::vector<cocos2d::Point> &cvs = colliderBody->_calculatedVertexList;
+        std::vector<cocos2d::Vec2> &cvs = colliderBody->_calculatedVertexList;
 #endif
 
         for (unsigned long i = 0; i < num; i++)

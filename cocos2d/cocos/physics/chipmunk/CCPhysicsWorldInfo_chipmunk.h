@@ -25,15 +25,18 @@
 #ifndef __CCPHYSICS_WORLD_INFO_CHIPMUNK_H__
 #define __CCPHYSICS_WORLD_INFO_CHIPMUNK_H__
 
-#include "ccConfig.h"
+#include "base/ccConfig.h"
 #if CC_USE_PHYSICS
 
 #include <vector>
-#include "chipmunk.h"
-#include "CCPlatformMacros.h"
-#include "CCGeometry.h"
+#include "platform/CCPlatformMacros.h"
+#include "math/CCGeometry.h"
+
+struct cpSpace;
+
+
 NS_CC_BEGIN
-typedef Point Vect;
+typedef Vec2 Vect;
 class PhysicsBodyInfo;
 class PhysicsJointInfo;
 class PhysicsShapeInfo;
@@ -49,8 +52,8 @@ public:
     void addJoint(PhysicsJointInfo& joint);
     void removeJoint(PhysicsJointInfo& joint);
     void setGravity(const Vect& gravity);
-    inline bool isLocked() { return 0 == _space->locked_private ? false : true; }
-    inline void step(float delta) { cpSpaceStep(_space, delta); }
+    bool isLocked();
+    void step(float delta);
     
 private:
     PhysicsWorldInfo();

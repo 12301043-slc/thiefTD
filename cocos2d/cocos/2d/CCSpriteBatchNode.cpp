@@ -26,27 +26,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "CCSpriteBatchNode.h"
-
-#include <algorithm>
-
-#include "ccConfig.h"
-#include "CCSprite.h"
-#include "CCGrid.h"
-#include "CCDrawingPrimitives.h"
-#include "CCTextureCache.h"
-#include "CCShaderCache.h"
-#include "CCGLProgram.h"
-#include "ccGLStateCache.h"
-#include "CCDirector.h"
-#include "TransformUtils.h"
-#include "CCProfiling.h"
-#include "CCLayer.h"
-#include "CCScene.h"
+#include "2d/CCSpriteBatchNode.h"
+#include "2d/CCSprite.h"
+#include "base/CCDirector.h"
+#include "renderer/CCTextureCache.h"
 #include "renderer/CCRenderer.h"
 #include "renderer/CCQuadCommand.h"
-// external
-#include "kazmath/GL/matrix.h"
+
+#include "deprecated/CCString.h" // For StringUtils::format
+
 
 NS_CC_BEGIN
 
@@ -56,7 +44,7 @@ NS_CC_BEGIN
 
 SpriteBatchNode* SpriteBatchNode::createWithTexture(Texture2D* tex, ssize_t capacity/* = DEFAULT_CAPACITY*/)
 {
-    SpriteBatchNode *batchNode = new SpriteBatchNode();
+    SpriteBatchNode *batchNode = new (std::nothrow) SpriteBatchNode();
     batchNode->initWithTexture(tex, capacity);
     batchNode->autorelease();
 
@@ -69,7 +57,7 @@ SpriteBatchNode* SpriteBatchNode::createWithTexture(Texture2D* tex, ssize_t capa
 
 SpriteBatchNode* SpriteBatchNode::create(const std::string& fileImage, ssize_t capacity/* = DEFAULT_CAPACITY*/)
 {
-    SpriteBatchNode *batchNode = new SpriteBatchNode();
+    SpriteBatchNode *batchNode = new (std::nothrow) SpriteBatchNode();
     batchNode->initWithFile(fileImage, capacity);
     batchNode->autorelease();
 
@@ -84,7 +72,11 @@ bool SpriteBatchNode::initWithTexture(Texture2D *tex, ssize_t capacity)
     CCASSERT(capacity>=0, "Capacity must be >= 0");
     
     _blendFunc = BlendFunc::ALPHA_PREMULTIPLIED;
-    _textureAtlas = new TextureAtlas();
+    if(!tex->hasPremultipliedAlpha())
+    {
+        _blendFunc = BlendFunc::ALPHA_NON_PREMULTIPLIED;
+    }
+    _textureAtlas = new (std::nothrow) TextureAtlas();
 
     if (capacity == 0)
     {
@@ -99,13 +91,13 @@ bool SpriteBatchNode::initWithTexture(Texture2D *tex, ssize_t capacity)
 
     _descendants.reserve(capacity);
     
-    setShaderProgram(ShaderCache::getInstance()->getProgram(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR));
+    setGLProgramState(GLProgramState::getOrCreateWithGLProgramName(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR));
     return true;
 }
 
 bool SpriteBatchNode::init()
 {
-    Texture2D * texture = new Texture2D();
+    Texture2D * texture = new (std::nothrow) Texture2D();
     texture->autorelease();
     return this->initWithTexture(texture, 0);
 }
@@ -131,7 +123,7 @@ SpriteBatchNode::~SpriteBatchNode()
 
 // override visit
 // don't call visit on it's children
-void SpriteBatchNode::visit(Renderer *renderer, const kmMat4 &parentTransform, bool parentTransformUpdated)
+void SpriteBatchNode::visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags)
 {
     CC_PROFILER_START_CATEGORY(kProfilerCategoryBatchSprite, "CCSpriteBatchNode - visit");
 
@@ -142,28 +134,28 @@ void SpriteBatchNode::visit(Renderer *renderer, const kmMat4 &parentTransform, b
     // The alternative is to have a void Sprite#visit, but
     // although this is less maintainable, is faster
     //
-    if (! _visible)
+    if (! _visible || !isVisitableByVisitingCamera())
     {
         return;
     }
 
     sortAllChildren();
 
-    bool dirty = parentTransformUpdated || _transformUpdated;
-    if(dirty)
-        _modelViewTransform = transform(parentTransform);
-    _transformUpdated = false;
+    uint32_t flags = processParentFlags(parentTransform, parentFlags);
 
     // IMPORTANT:
-    // To ease the migration to v3.0, we still support the kmGL stack,
+    // To ease the migration to v3.0, we still support the Mat4 stack,
     // but it is deprecated and your code should not rely on it
-    kmGLPushMatrix();
-    kmGLLoadMatrix(&_modelViewTransform);
+    Director* director = Director::getInstance();
+    director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, _modelViewTransform);
 
-    draw(renderer, _modelViewTransform, dirty);
+    draw(renderer, _modelViewTransform, flags);
 
-    kmGLPopMatrix();
-    setOrderOfArrival(0);
+    director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    // FIX ME: Why need to set _orderOfArrival to 0??
+    // Please refer to https://github.com/cocos2d/cocos2d-x/pull/6920
+//    setOrderOfArrival(0);
 
     CC_PROFILER_STOP_CATEGORY(kProfilerCategoryBatchSprite, "CCSpriteBatchNode - visit");
 }
@@ -178,6 +170,19 @@ void SpriteBatchNode::addChild(Node *child, int zOrder, int tag)
 
     Node::addChild(child, zOrder, tag);
 
+    appendChild(sprite);
+}
+
+void SpriteBatchNode::addChild(Node * child, int zOrder, const std::string &name)
+{
+    CCASSERT(child != nullptr, "child should not be null");
+    CCASSERT(dynamic_cast<Sprite*>(child) != nullptr, "CCSpriteBatchNode only supports Sprites as children");
+    Sprite *sprite = static_cast<Sprite*>(child);
+    // check Sprite is using the same texture id
+    CCASSERT(sprite->getTexture()->getName() == _textureAtlas->getTexture()->getName(), "CCSprite is not using the same texture id");
+    
+    Node::addChild(child, zOrder, name);
+    
     appendChild(sprite);
 }
 
@@ -353,7 +358,7 @@ void SpriteBatchNode::reorderBatch(bool reorder)
     _reorderChildDirty=reorder;
 }
 
-void SpriteBatchNode::draw(Renderer *renderer, const kmMat4 &transform, bool transformUpdated)
+void SpriteBatchNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
 {
     // Optimization: Fast Dispatch
     if( _textureAtlas->getTotalQuads() == 0 )
@@ -366,7 +371,7 @@ void SpriteBatchNode::draw(Renderer *renderer, const kmMat4 &transform, bool tra
 
     _batchCommand.init(
                        _globalZOrder,
-                       _shaderProgram,
+                       getGLProgram(),
                        _blendFunc,
                        _textureAtlas,
                        transform);
@@ -620,8 +625,8 @@ void SpriteBatchNode::insertQuadFromSprite(Sprite *sprite, ssize_t index)
     V3F_C4B_T2F_Quad quad = sprite->getQuad();
     _textureAtlas->insertQuad(&quad, index);
 
-    // XXX: updateTransform will update the textureAtlas too, using updateQuad.
-    // XXX: so, it should be AFTER the insertQuad
+    // FIXME:: updateTransform will update the textureAtlas too, using updateQuad.
+    // FIXME:: so, it should be AFTER the insertQuad
     sprite->setDirty(true);
     sprite->updateTransform();
 }
@@ -657,7 +662,7 @@ SpriteBatchNode * SpriteBatchNode::addSpriteWithoutQuad(Sprite*child, int z, int
     // quad index is Z
     child->setAtlasIndex(z);
 
-    // XXX: optimize with a binary search
+    // FIXME:: optimize with a binary search
     auto it = _descendants.begin();
     for (; it != _descendants.end(); ++it)
     {

@@ -40,11 +40,11 @@ void LayerGradientLoader::onHandlePropTypeBlendFunc(Node * pNode, Node * pParent
 }
 
 
-void LayerGradientLoader::onHandlePropTypePoint(Node * pNode, Node * pParent, const char * pPropertyName, Point pPoint, CCBReader * ccbReader) {
+void LayerGradientLoader::onHandlePropTypePoint(Node * pNode, Node * pParent, const char * pPropertyName, Vec2 pPoint, CCBReader * ccbReader) {
     if(strcmp(pPropertyName, PROPERTY_VECTOR) == 0) {
         ((LayerGradient *)pNode)->setVector(pPoint);
 
-        // TODO Not passed along the ccbi file.
+        // TODO: Not passed along the ccbi file.
         // ((LayerGradient *)pNode)->setCompressedInterpolation(true);
     } else {
         LayerLoader::onHandlePropTypePoint(pNode, pParent, pPropertyName, pPoint, ccbReader);

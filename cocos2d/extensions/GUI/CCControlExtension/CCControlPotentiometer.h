@@ -28,7 +28,8 @@
 #define __CCCONTROLPOTENTIOMETER_H__
 
 #include "CCControl.h"
-#include "CCProgressTimer.h"
+#include "2d/CCProgressTimer.h"
+#include "extensions/ExtensionExport.h"
 
 NS_CC_EXT_BEGIN
 
@@ -40,7 +41,7 @@ NS_CC_EXT_BEGIN
  */
 
 /** @class ControlPotentiometer Potentiometer control for Cocos2D. */
-class ControlPotentiometer : public Control
+class CC_EX_DLL ControlPotentiometer : public Control
 {
 public:
     /**
@@ -82,18 +83,18 @@ public:
     virtual void onTouchEnded(Touch *pTouch, Event *pEvent) override;
 
     /** Factorize the event dispath into these methods. */
-    void potentiometerBegan(Point location);
-    void potentiometerMoved(Point location);
-    void potentiometerEnded(Point location);
+    void potentiometerBegan(Vec2 location);
+    void potentiometerMoved(Vec2 location);
+    void potentiometerEnded(Vec2 location);
 
     /** Returns the distance between the point1 and point2. */
-    float distanceBetweenPointAndPoint(Point point1, Point point2);
+    float distanceBetweenPointAndPoint(Vec2 point1, Vec2 point2);
     /** Returns the angle in degree between line1 and line2. */
     float angleInDegreesBetweenLineFromPoint_toPoint_toLineFromPoint_toPoint(
-        Point beginLineA, 
-        Point endLineA,
-        Point beginLineB,
-        Point endLineB);
+        Vec2 beginLineA, 
+        Vec2 endLineA,
+        Vec2 beginLineB,
+        Vec2 endLineB);
 
 protected:
     /** Contains the receiver’s current value. */
@@ -107,7 +108,7 @@ protected:
 
     CC_SYNTHESIZE_RETAIN(Sprite*, _thumbSprite, ThumbSprite)
     CC_SYNTHESIZE_RETAIN(ProgressTimer*, _progressTimer, ProgressTimer)
-    CC_SYNTHESIZE(Point, _previousLocation, PreviousLocation)
+    CC_SYNTHESIZE(Vec2, _previousLocation, PreviousLocation)
 };
 
 // end of GUI group

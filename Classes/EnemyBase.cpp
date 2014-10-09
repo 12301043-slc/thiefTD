@@ -7,7 +7,6 @@
 //
 
 #include "EnemyBase.h"
-
 EnemyBase::EnemyBase()
 :sprite(NULL)
 ,hpBgSprite(NULL)
@@ -27,23 +26,33 @@ EnemyBase::EnemyBase()
 
 EnemyBase::~EnemyBase()
 {
+	hpBgSprite->removeFromParent();
 }
 
 bool EnemyBase::init()
 {
-	if (!Sprite::init())
+	if (!Sprite3D::init())
 	{
 		return false;
 	}
 	return true;
 }
+Sprite * EnemyBase::getHpBarBg()
+{
+	return hpBgSprite;
+}
 
+void EnemyBase::update(float delta)
+{
+	//hpBgSprite->setPosition(Point(sprite->getContentSize().width / 2, sprite->getContentSize().height )+sprite->getPosition());
+
+}
 void EnemyBase::createAndSetHpBar()
 {
+	 
     hpBgSprite = Sprite::createWithSpriteFrameName("hpBg1.png");
     hpBgSprite->setPosition(Point(sprite->getContentSize().width / 2, sprite->getContentSize().height ));
     sprite->addChild(hpBgSprite);
-    
 	hpBar = CCProgressTimer::create(Sprite::createWithSpriteFrameName("hp1.png"));
 	hpBar->setType(ProgressTimer::Type::BAR);
 	hpBar->setMidpoint(Point(0, 0.5f));

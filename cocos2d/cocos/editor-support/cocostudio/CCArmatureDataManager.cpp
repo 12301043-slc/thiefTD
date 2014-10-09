@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "CCSpriteFrameCache.h"
+#include "2d/CCSpriteFrameCache.h"
 
 #include "cocostudio/CCArmatureDataManager.h"
 #include "cocostudio/CCTransformHelp.h"
@@ -39,7 +39,7 @@ ArmatureDataManager *ArmatureDataManager::getInstance()
 {
     if (s_sharedArmatureDataManager == nullptr)
     {
-        s_sharedArmatureDataManager = new ArmatureDataManager();
+        s_sharedArmatureDataManager = new (std::nothrow) ArmatureDataManager();
         if (!s_sharedArmatureDataManager || !s_sharedArmatureDataManager->init())
         {
             CC_SAFE_DELETE(s_sharedArmatureDataManager);

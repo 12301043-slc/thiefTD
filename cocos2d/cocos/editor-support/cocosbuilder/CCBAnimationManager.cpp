@@ -1,13 +1,13 @@
 #include "CCBAnimationManager.h"
-#include "CCBSequence.h"
-#include "CCBSequenceProperty.h"
+
 #include "CCBReader.h"
-#include "CCBKeyframe.h"
 #include "CCNode+CCBRelativePositioning.h"
-#include <string>
-#include <set>
-#include "SimpleAudioEngine.h"
+#include "audio/include/SimpleAudioEngine.h"
 #include "CCBSelectorResolver.h"
+
+#include <string>
+#include <sstream>
+#include <set>
 
 using namespace cocos2d;
 using namespace std;
@@ -378,7 +378,7 @@ ActionInterval* CCBAnimationManager::getAction(CCBKeyframe *pKeyframe0, CCBKeyfr
         
         Size containerSize = getContainerSize(pNode->getParent());
         
-        Point absPos = getAbsolutePosition(Point(x,y), type, containerSize, propName);
+        Vec2 absPos = getAbsolutePosition(Vec2(x,y), type, containerSize, propName);
         
         return MoveTo::create(duration, absPos);
     }
@@ -424,7 +424,7 @@ void CCBAnimationManager::setAnimatedProperty(const std::string& propName, Node 
     if (fTweenDuration > 0)
     {
         // Create a fake keyframe to generate the action from
-        CCBKeyframe *kf1 = new CCBKeyframe();
+        CCBKeyframe *kf1 = new (std::nothrow) CCBKeyframe();
         kf1->autorelease();
         
         kf1->setObject(obj);
@@ -450,7 +450,7 @@ void CCBAnimationManager::setAnimatedProperty(const std::string& propName, Node 
             float x = valueVector[0].asFloat();
             float y = valueVector[1].asFloat();
             
-            pNode->setPosition(getAbsolutePosition(Point(x,y), type, getContainerSize(pNode->getParent()), propName));
+            pNode->setPosition(getAbsolutePosition(Vec2(x,y), type, getContainerSize(pNode->getParent()), propName));
         }
         else if (propName == "scale")
         {
@@ -479,7 +479,7 @@ void CCBAnimationManager::setAnimatedProperty(const std::string& propName, Node 
         {
             // [node setValue:value forKey:name];
 
-            // TODO only handle rotation, opacity, displayFrame, color
+            // TODO: only handle rotation, opacity, displayFrame, color
             if (propName == "rotation")
             {
                 float rotate = value.asFloat();
@@ -955,7 +955,7 @@ void CCBAnimationManager::sequenceCompleted()
 
 CCBSetSpriteFrame* CCBSetSpriteFrame::create(SpriteFrame *pSpriteFrame)
 {
-    CCBSetSpriteFrame *ret = new CCBSetSpriteFrame();
+    CCBSetSpriteFrame *ret = new (std::nothrow) CCBSetSpriteFrame();
     if (ret)
     {
         if (ret->initWithSpriteFrame(pSpriteFrame))
@@ -987,7 +987,7 @@ CCBSetSpriteFrame::~CCBSetSpriteFrame()
 CCBSetSpriteFrame* CCBSetSpriteFrame::clone() const
 {
 	// no copy constructor
-	auto a = new CCBSetSpriteFrame();
+	auto a = new (std::nothrow) CCBSetSpriteFrame();
     a->initWithSpriteFrame(_spriteFrame);
 	a->autorelease();
 	return a;
@@ -1010,7 +1010,7 @@ void CCBSetSpriteFrame::update(float time)
  ************************************************************/
 
 CCBSoundEffect* CCBSoundEffect::actionWithSoundFile(const std::string &filename, float pitch, float pan, float gain) {
-  CCBSoundEffect* pRet = new CCBSoundEffect();
+  CCBSoundEffect* pRet = new (std::nothrow) CCBSoundEffect();
   if (pRet != nullptr && pRet->initWithSoundFile(filename, pitch, pan, gain))
     {
       pRet->autorelease();
@@ -1038,7 +1038,7 @@ bool CCBSoundEffect::initWithSoundFile(const std::string &filename, float pitch,
 CCBSoundEffect* CCBSoundEffect::clone() const
 {
 	// no copy constructor
-	auto a = new CCBSoundEffect();
+	auto a = new (std::nothrow) CCBSoundEffect();
     a->initWithSoundFile(_soundFile, _pitch, _pan, _gain);
 	a->autorelease();
 	return a;
@@ -1062,7 +1062,7 @@ void CCBSoundEffect::update(float time)
 
 CCBRotateTo* CCBRotateTo::create(float fDuration, float fAngle)
 {
-    CCBRotateTo *ret = new CCBRotateTo();
+    CCBRotateTo *ret = new (std::nothrow) CCBRotateTo();
     if (ret)
     {
         if (ret->initWithDuration(fDuration, fAngle))
@@ -1095,7 +1095,7 @@ bool CCBRotateTo::initWithDuration(float fDuration, float fAngle)
 CCBRotateTo* CCBRotateTo::clone() const
 {
 	// no copy constructor	
-	auto a = new CCBRotateTo();
+	auto a = new (std::nothrow) CCBRotateTo();
     a->initWithDuration(_duration, _dstAngle);
 	a->autorelease();
 	return a;
@@ -1130,7 +1130,7 @@ void CCBRotateTo::update(float time)
 
 CCBRotateXTo* CCBRotateXTo::create(float fDuration, float fAngle)
 {
-    CCBRotateXTo *ret = new CCBRotateXTo();
+    CCBRotateXTo *ret = new (std::nothrow) CCBRotateXTo();
     if (ret)
     {
         if (ret->initWithDuration(fDuration, fAngle))
@@ -1175,7 +1175,7 @@ void CCBRotateXTo::startWithTarget(Node *pNode)
 CCBRotateXTo* CCBRotateXTo::clone() const
 {
 	// no copy constructor
-	auto a = new CCBRotateXTo();
+	auto a = new (std::nothrow) CCBRotateXTo();
     a->initWithDuration(_duration, _dstAngle);
 	a->autorelease();
 	return a;
@@ -1202,7 +1202,7 @@ void CCBRotateXTo::update(float time)
 
 CCBRotateYTo* CCBRotateYTo::create(float fDuration, float fAngle)
 {
-    CCBRotateYTo *ret = new CCBRotateYTo();
+    CCBRotateYTo *ret = new (std::nothrow) CCBRotateYTo();
     if (ret)
     {
         if (ret->initWithDuration(fDuration, fAngle))
@@ -1235,7 +1235,7 @@ bool CCBRotateYTo::initWithDuration(float fDuration, float fAngle)
 CCBRotateYTo* CCBRotateYTo::clone() const
 {
 	// no copy constructor
-	auto a = new CCBRotateYTo();
+	auto a = new (std::nothrow) CCBRotateYTo();
     a->initWithDuration(_duration, _dstAngle);
 	a->autorelease();
 	return a;
@@ -1271,7 +1271,7 @@ void CCBRotateYTo::update(float time)
  ************************************************************/
 CCBEaseInstant* CCBEaseInstant::create(ActionInterval *pAction)
 {
-    CCBEaseInstant *pRet = new CCBEaseInstant();
+    CCBEaseInstant *pRet = new (std::nothrow) CCBEaseInstant();
     if (pRet && pRet->initWithAction(pAction))
     {
         pRet->autorelease();
@@ -1287,7 +1287,7 @@ CCBEaseInstant* CCBEaseInstant::create(ActionInterval *pAction)
 CCBEaseInstant* CCBEaseInstant::clone() const
 {
 	// no copy constructor	
-	auto a = new CCBEaseInstant();
+	auto a = new (std::nothrow) CCBEaseInstant();
     a->initWithAction(_inner);
 	a->autorelease();
 	return a;

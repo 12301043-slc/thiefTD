@@ -25,14 +25,14 @@
 #ifndef __CCPHYSICS_CONTACT_H__
 #define __CCPHYSICS_CONTACT_H__
 
-#include "ccConfig.h"
+#include "base/ccConfig.h"
 #if CC_USE_PHYSICS
 
-#include "CCRef.h"
-#include "CCGeometry.h"
-#include "CCEventListenerCustom.h"
-#include "CCEvent.h"
-#include "CCEventCustom.h"
+#include "base/CCRef.h"
+#include "math/CCGeometry.h"
+#include "base/CCEventListenerCustom.h"
+#include "base/CCEvent.h"
+#include "base/CCEventCustom.h"
 
 NS_CC_BEGIN
 
@@ -42,14 +42,14 @@ class PhysicsWorld;
 
 class PhysicsContactInfo;
 
-typedef Point Vect;
+typedef Vec2 Vect;
 
-typedef struct PhysicsContactData
+typedef struct CC_DLL PhysicsContactData
 {
     static const int POINT_MAX = 4;
-    Point points[POINT_MAX];
+    Vec2 points[POINT_MAX];
     int   count;
-    Point normal;
+    Vec2 normal;
     
     PhysicsContactData()
     : count(0)
@@ -59,7 +59,7 @@ typedef struct PhysicsContactData
 /**
  * @brief Contact infomation. it will created automatically when two shape contact with each other. and it will destoried automatically when two shape separated.
  */
-class PhysicsContact : public EventCustom
+class CC_DLL PhysicsContact : public EventCustom
 {
 public:
     
@@ -129,7 +129,7 @@ private:
 /*
  * @brief presolve value generated when onContactPreSolve called.
  */
-class PhysicsContactPreSolve
+class CC_DLL PhysicsContactPreSolve
 {
 public:
     /** get restitution between two bodies*/
@@ -137,7 +137,7 @@ public:
     /** get friction between two bodies*/
     float getFriction() const;
     /** get surface velocity between two bodies*/
-    Point getSurfaceVelocity() const;
+    Vec2 getSurfaceVelocity() const;
     /** set the restitution*/
     void setRestitution(float restitution);
     /** set the friction*/
@@ -160,7 +160,7 @@ private:
 /*
  * @brief postsolve value generated when onContactPostSolve called.
  */
-class PhysicsContactPostSolve
+class CC_DLL PhysicsContactPostSolve
 {
 public:
     /** get restitution between two bodies*/
@@ -168,7 +168,7 @@ public:
     /** get friction between two bodies*/
     float getFriction() const;
     /** get surface velocity between two bodies*/
-    Point getSurfaceVelocity() const;
+    Vec2 getSurfaceVelocity() const;
     
 private:
     PhysicsContactPostSolve(void* contactInfo);
@@ -181,7 +181,7 @@ private:
 };
 
 /* contact listener. it will recive all the contact callbacks. */
-class EventListenerPhysicsContact : public EventListenerCustom
+class CC_DLL EventListenerPhysicsContact : public EventListenerCustom
 {
 public:
     /** create the listener */
@@ -227,7 +227,7 @@ protected:
 };
 
 /** this event listener only be called when bodyA and bodyB have contacts */
-class EventListenerPhysicsContactWithBodies : public EventListenerPhysicsContact
+class CC_DLL EventListenerPhysicsContactWithBodies : public EventListenerPhysicsContact
 {
 public:
     static EventListenerPhysicsContactWithBodies* create(PhysicsBody* bodyA, PhysicsBody* bodyB);
@@ -245,7 +245,7 @@ protected:
 };
 
 /** this event listener only be called when shapeA and shapeB have contacts */
-class EventListenerPhysicsContactWithShapes : public EventListenerPhysicsContact
+class CC_DLL EventListenerPhysicsContactWithShapes : public EventListenerPhysicsContact
 {
 public:
     static EventListenerPhysicsContactWithShapes* create(PhysicsShape* shapeA, PhysicsShape* shapeB);
@@ -263,7 +263,7 @@ protected:
 };
 
 /** this event listener only be called when shapeA or shapeB is in the group your specified */
-class EventListenerPhysicsContactWithGroup : public EventListenerPhysicsContact
+class CC_DLL EventListenerPhysicsContactWithGroup : public EventListenerPhysicsContact
 {
 public:
     static EventListenerPhysicsContactWithGroup* create(int group);

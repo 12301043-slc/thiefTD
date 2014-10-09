@@ -26,8 +26,11 @@ THE SOFTWARE.
 #define __UILABELATLAS_H__
 
 #include "ui/UIWidget.h"
+#include "ui/GUIExport.h"
 
 NS_CC_BEGIN
+
+class Label;
 
 namespace ui {
     
@@ -35,7 +38,7 @@ namespace ui {
  *   @js NA
  *   @lua NA
  */
-class TextAtlas : public Widget
+class CC_GUI_DLL TextAtlas : public Widget
 {
     
     DECLARE_CLASS_GUI_INFO
@@ -56,20 +59,41 @@ public:
      */
     static TextAtlas* create();
     
+    /**
+     * create a LabelAtlas from a char map file
+     */
+    static TextAtlas* create(const std::string& stringValue,
+                             const std::string& charMapFile,
+                             int itemWidth,
+                             int itemHeight,
+                             const std::string& startCharMap);
+    
     /** initializes the LabelAtlas with a string, a char map file(the atlas), the width and height of each element and the starting char of the atlas */
-    void setProperty(const std::string& stringValue,const std::string& charMapFile, int itemWidth, int itemHeight, const std::string& startCharMap);
+    void setProperty(const std::string& stringValue,
+                     const std::string& charMapFile,
+                     int itemWidth,
+                     int itemHeight,
+                     const std::string& startCharMap);
     
     //set string value for labelatlas.
-    void setStringValue(const std::string& value);
+    CC_DEPRECATED_ATTRIBUTE void setStringValue(const std::string& value){this->setString(value);}
+    void setString(const std::string& value);
     
     //get string value for labelatlas.
-    const std::string& getStringValue() const;
+    CC_DEPRECATED_ATTRIBUTE const std::string& getStringValue() const{return this->getString();}
+    const std::string& getString() const;
     
-    //override "setAnchorPoint" method of widget.
-    virtual void setAnchorPoint(const Point &pt) override;
+    /**
+     * Gets the string length of the label.
+     * Note: This length will be larger than the raw string length,
+     * if you want to get the raw string length, you should call this->getString().size() instead
+     *
+     * @return  string length.
+     */
+    ssize_t getStringLength()const;
     
-    //override "getContentSize" method of widget.
-    virtual const Size& getContentSize() const override;
+    //override "getVirtualRendererSize" method of widget.
+    virtual Size getVirtualRendererSize() const override;
     
     //override "getVirtualRenderer" method of widget.
     virtual Node* getVirtualRenderer() override;
@@ -79,22 +103,22 @@ public:
      */
     virtual std::string getDescription() const override;
     
+    virtual void adaptRenderers() override;
 protected:
     virtual void initRenderer() override;
     virtual void onSizeChanged() override;
-    virtual void updateTextureColor() override;
-    virtual void updateTextureOpacity() override;
-    virtual void updateTextureRGBA() override;
+  
     void labelAtlasScaleChangedWithSize();
     virtual Widget* createCloneInstance() override;
     virtual void copySpecialProperties(Widget* model) override;
 protected:
-    LabelAtlas* _labelAtlasRenderer;
+    Label* _labelAtlasRenderer;
     std::string _stringValue;
     std::string _charMapFileName;
     int _itemWidth;
     int _itemHeight;
     std::string _startCharMap;
+    bool _labelAtlasRendererAdaptDirty;
 };
 
 }

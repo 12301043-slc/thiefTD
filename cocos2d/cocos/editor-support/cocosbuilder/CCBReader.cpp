@@ -1,11 +1,11 @@
 #include <ctype.h>
 #include <algorithm>
 
-#include "CCDirector.h"
+#include "base/CCDirector.h"
 #include "platform/CCFileUtils.h"
-#include "CCScene.h"
-#include "CCTextureCache.h"
-#include "CCSpriteFrameCache.h"
+#include "2d/CCScene.h"
+#include "2d/CCSpriteFrameCache.h"
+#include "renderer/CCTextureCache.h"
 
 #include "CCBReader.h"
 #include "CCNodeLoader.h"
@@ -16,14 +16,12 @@
 #include "CCBAnimationManager.h"
 #include "CCBSequenceProperty.h"
 #include "CCBKeyframe.h"
+#include <sstream>
 
-
-
-using namespace std;
 using namespace cocos2d;
 using namespace cocos2d::extension;
 
-namespace cocosbuilder {;
+namespace cocosbuilder {
 
 /*************************************************************************
  Implementation of CCBFile
@@ -33,7 +31,7 @@ CCBFile::CCBFile():_CCBFileNode(nullptr) {}
 
 CCBFile* CCBFile::create()
 {
-    CCBFile *ret = new CCBFile();
+    CCBFile *ret = new (std::nothrow) CCBFile();
     
     if (ret)
     {
@@ -142,7 +140,7 @@ const std::string& CCBReader::getCCBRootPath() const
 bool CCBReader::init()
 {
     // Setup action manager
-    CCBAnimationManager *pActionManager = new CCBAnimationManager();
+    CCBAnimationManager *pActionManager = new (std::nothrow) CCBAnimationManager();
     setAnimationManager(pActionManager);
     pActionManager->release();
     
@@ -182,12 +180,12 @@ CCBSelectorResolver * CCBReader::getCCBSelectorResolver() {
     return this->_CCBSelectorResolver;
 }
 
-set<string>* CCBReader::getAnimatedProperties()
+std::set<std::string>* CCBReader::getAnimatedProperties()
 {
     return _animatedProps;
 }
 
-set<string>& CCBReader::getLoadedSpriteSheet()
+std::set<std::string>& CCBReader::getLoadedSpriteSheet()
 {
     return _loadedSpriteSheets;
 }
@@ -479,7 +477,7 @@ float CCBReader::readFloat()
             {
                 /* using a memcpy since the compiler isn't
                  * doing the float ptr math correctly on device.
-                 * TODO still applies in C++ ? */
+                 * TODO: still applies in C++ ? */
                 unsigned char* pF = (this->_bytes + this->_currentByte);
                 float f = 0;
                 
@@ -551,7 +549,7 @@ Node * CCBReader::readNodeGraph(Node * pParent)
 
     // Read animated properties
     std::unordered_map<int, Map<std::string, CCBSequenceProperty*>> seqs;
-    _animatedProps = new set<string>();
+    _animatedProps = new std::set<std::string>();
     
     int numSequence = readInt(false);
     for (int i = 0; i < numSequence; ++i)
@@ -563,7 +561,7 @@ Node * CCBReader::readNodeGraph(Node * pParent)
         
         for (int j = 0; j < numProps; ++j)
         {
-            CCBSequenceProperty *seqProp = new CCBSequenceProperty();
+            CCBSequenceProperty *seqProp = new (std::nothrow) CCBSequenceProperty();
             seqProp->autorelease();
             
             seqProp->setName(readCachedString().c_str());
@@ -733,7 +731,7 @@ Node * CCBReader::readNodeGraph(Node * pParent)
 
 CCBKeyframe* CCBReader::readKeyframe(PropertyType type)
 {
-    CCBKeyframe *keyframe = new CCBKeyframe();
+    CCBKeyframe *keyframe = new (std::nothrow) CCBKeyframe();
     keyframe->autorelease();
     
     keyframe->setTime(readFloat());
@@ -837,7 +835,7 @@ bool CCBReader::readCallbackKeyframesForSeq(CCBSequence* seq)
     int numKeyframes = readInt(false);
     if(!numKeyframes) return true;
     
-    CCBSequenceProperty* channel = new CCBSequenceProperty();
+    CCBSequenceProperty* channel = new (std::nothrow) CCBSequenceProperty();
     channel->autorelease();
 
     for(int i = 0; i < numKeyframes; ++i) {
@@ -851,7 +849,7 @@ bool CCBReader::readCallbackKeyframesForSeq(CCBSequence* seq)
         valueVector.push_back(Value(callbackName));
         valueVector.push_back(Value(callbackType));
         
-        CCBKeyframe* keyframe = new CCBKeyframe();
+        CCBKeyframe* keyframe = new (std::nothrow) CCBKeyframe();
         keyframe->autorelease();
         
         keyframe->setTime(time);
@@ -876,7 +874,7 @@ bool CCBReader::readSoundKeyframesForSeq(CCBSequence* seq) {
     int numKeyframes = readInt(false);
     if(!numKeyframes) return true;
     
-    CCBSequenceProperty* channel = new CCBSequenceProperty();
+    CCBSequenceProperty* channel = new (std::nothrow) CCBSequenceProperty();
     channel->autorelease();
 
     for(int i = 0; i < numKeyframes; ++i) {
@@ -893,7 +891,7 @@ bool CCBReader::readSoundKeyframesForSeq(CCBSequence* seq) {
         vec.push_back(Value(pan));
         vec.push_back(Value(gain));
         
-        CCBKeyframe* keyframe = new CCBKeyframe();
+        CCBKeyframe* keyframe = new (std::nothrow) CCBKeyframe();
         keyframe->setTime(time);
         keyframe->setValue(Value(vec));
         channel->getKeyframes().pushBack(keyframe);
@@ -918,7 +916,7 @@ bool CCBReader::readSequences()
     
     for (int i = 0; i < numSeqs; i++)
     {
-        CCBSequence *seq = new CCBSequence();
+        CCBSequence *seq = new (std::nothrow) CCBSequence();
         seq->autorelease();
         
         seq->setDuration(readFloat());

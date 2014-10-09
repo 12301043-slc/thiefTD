@@ -24,12 +24,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-#include "CCAnimationCache.h"
-#include "ccMacros.h"
-#include "CCAnimation.h"
-#include "CCSpriteFrame.h"
-#include "CCSpriteFrameCache.h"
-#include "CCString.h"
+#include "2d/CCAnimationCache.h"
+#include "2d/CCSpriteFrameCache.h"
 #include "platform/CCFileUtils.h"
 
 using namespace std;
@@ -42,7 +38,7 @@ AnimationCache* AnimationCache::getInstance()
 {
     if (! s_sharedAnimationCache)
     {
-        s_sharedAnimationCache = new AnimationCache();
+        s_sharedAnimationCache = new (std::nothrow) AnimationCache();
         s_sharedAnimationCache->init();
     }
 
@@ -174,7 +170,7 @@ void AnimationCache::parseVersion2(const ValueMap& animations)
             float delayUnits = entry["delayUnits"].asFloat();
             Value& userInfo = entry["notification"];
 
-            AnimationFrame *animFrame = AnimationFrame::create(spriteFrame, delayUnits, userInfo.asValueMap());
+            AnimationFrame *animFrame = AnimationFrame::create(spriteFrame, delayUnits, userInfo.getType() == Value::Type::MAP ? userInfo.asValueMap() : ValueMapNull);
 
             array.pushBack(animFrame);
         }

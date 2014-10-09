@@ -71,7 +71,8 @@ void ArrowTower::shoot()
         
         auto moveDuration = getRate();
         Point shootVector = nearestEnemy->sprite->getPosition() - this->getPosition();
-		Point normalizedShootVector = -shootVector.normalize();
+		shootVector.normalize();
+		Point normalizedShootVector = -shootVector;
         
         auto farthestDistance = Director::getInstance()->getWinSize().width;
 		Point overshotVector = normalizedShootVector * farthestDistance;

@@ -26,13 +26,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "CCActionManager.h"
-#include "CCNode.h"
-#include "CCScheduler.h"
-#include "ccMacros.h"
-#include "ccCArray.h"
-#include "uthash.h"
-#include "CCSet.h"
+#include "2d/CCActionManager.h"
+#include "2d/CCNode.h"
+#include "2d/CCAction.h"
+#include "base/CCScheduler.h"
+#include "base/ccMacros.h"
+#include "base/ccCArray.h"
+#include "base/uthash.h"
 
 NS_CC_BEGIN
 //
@@ -40,16 +40,16 @@ NS_CC_BEGIN
 //
 typedef struct _hashElement
 {
-    struct _ccArray             *actions;
-    Node                    *target;
-    int                actionIndex;
-    Action                    *currentAction;
-    bool                        currentActionSalvaged;
-    bool                        paused;
-    UT_hash_handle                hh;
+    struct _ccArray     *actions;
+    Node                *target;
+    int                 actionIndex;
+    Action              *currentAction;
+    bool                currentActionSalvaged;
+    bool                paused;
+    UT_hash_handle      hh;
 } tHashElement;
 
-ActionManager::ActionManager(void)
+ActionManager::ActionManager()
 : _targets(nullptr),
   _currentTarget(nullptr),
   _currentTargetSalvaged(false)
@@ -57,7 +57,7 @@ ActionManager::ActionManager(void)
 
 }
 
-ActionManager::~ActionManager(void)
+ActionManager::~ActionManager()
 {
     CCLOGINFO("deallocing ActionManager: %p", this);
 
@@ -287,9 +287,37 @@ void ActionManager::removeActionByTag(int tag, Node *target)
     }
 }
 
+void ActionManager::removeAllActionsByTag(int tag, Node *target)
+{
+    CCASSERT(tag != Action::INVALID_TAG, "");
+    CCASSERT(target != nullptr, "");
+    
+    tHashElement *element = nullptr;
+    HASH_FIND_PTR(_targets, &target, element);
+    
+    if (element)
+    {
+        auto limit = element->actions->num;
+        for (int i = 0; i < limit;)
+        {
+            Action *action = (Action*)element->actions->arr[i];
+            
+            if (action->getTag() == (int)tag && action->getOriginalTarget() == target)
+            {
+                removeActionAtIndex(i, element);
+                --limit;
+            }
+            else
+            {
+                ++i;
+            }
+        }
+    }
+}
+
 // get
 
-// XXX: Passing "const O *" instead of "const O&" because HASH_FIND_IT requries the address of a pointer
+// FIXME: Passing "const O *" instead of "const O&" because HASH_FIND_IT requries the address of a pointer
 // and, it is not possible to get the address of a reference
 Action* ActionManager::getActionByTag(int tag, const Node *target) const
 {
@@ -313,7 +341,7 @@ Action* ActionManager::getActionByTag(int tag, const Node *target) const
                 }
             }
         }
-        CCLOG("cocos2d : getActionByTag(tag = %d): Action not found", tag);
+        //CCLOG("cocos2d : getActionByTag(tag = %d): Action not found", tag);
     }
     else
     {
@@ -323,7 +351,7 @@ Action* ActionManager::getActionByTag(int tag, const Node *target) const
     return nullptr;
 }
 
-// XXX: Passing "const O *" instead of "const O&" because HASH_FIND_IT requries the address of a pointer
+// FIXME: Passing "const O *" instead of "const O&" because HASH_FIND_IT requries the address of a pointer
 // and, it is not possible to get the address of a reference
 ssize_t ActionManager::getNumberOfRunningActionsInTarget(const Node *target) const
 {

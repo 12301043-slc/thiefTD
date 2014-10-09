@@ -28,7 +28,7 @@ public:
 	void transitionScene();
 	void loadingCallBack(cocos2d::Texture2D *texture);
     void logic(float dt);
-
+	~LoadingResScene();
 private:
     
 	ProgressTimer* progressBar;

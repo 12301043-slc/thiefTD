@@ -22,18 +22,18 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "CCPhysicsJoint.h"
+#include "physics/CCPhysicsJoint.h"
 #if CC_USE_PHYSICS
 #include "chipmunk.h"
 
-#include "CCPhysicsBody.h"
-#include "CCPhysicsWorld.h"
+#include "physics/CCPhysicsBody.h"
+#include "physics/CCPhysicsWorld.h"
 
 #include "chipmunk/CCPhysicsJointInfo_chipmunk.h"
 #include "chipmunk/CCPhysicsBodyInfo_chipmunk.h"
 #include "chipmunk/CCPhysicsShapeInfo_chipmunk.h"
 #include "chipmunk/CCPhysicsHelper_chipmunk.h"
-#include "CCNode.h"
+#include "2d/CCNode.h"
 
 NS_CC_BEGIN
 
@@ -65,7 +65,7 @@ bool PhysicsJoint::init(cocos2d::PhysicsBody *a, cocos2d::PhysicsBody *b)
         CCASSERT(a != nullptr && b != nullptr, "the body passed in is nil");
         CCASSERT(a != b, "the two bodies are equal");
         
-        CC_BREAK_IF(!(_info = new PhysicsJointInfo(this)));
+        CC_BREAK_IF(!(_info = new (std::nothrow) PhysicsJointInfo(this)));
         
         _bodyA = a;
         _bodyA->_joints.push_back(this);
@@ -162,9 +162,9 @@ float PhysicsJoint::getMaxForce() const
     return PhysicsHelper::cpfloat2float(_info->getJoints().front()->maxForce);
 }
 
-PhysicsJointFixed* PhysicsJointFixed::construct(PhysicsBody* a, PhysicsBody* b, const Point& anchr)
+PhysicsJointFixed* PhysicsJointFixed::construct(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr)
 {
-    PhysicsJointFixed* joint = new PhysicsJointFixed();
+    PhysicsJointFixed* joint = new (std::nothrow) PhysicsJointFixed();
     
     if (joint && joint->init(a, b, anchr))
     {
@@ -175,7 +175,7 @@ PhysicsJointFixed* PhysicsJointFixed::construct(PhysicsBody* a, PhysicsBody* b, 
     return nullptr;
 }
 
-bool PhysicsJointFixed::init(PhysicsBody* a, PhysicsBody* b, const Point& anchr)
+bool PhysicsJointFixed::init(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr)
 {
     do
     {
@@ -203,9 +203,9 @@ bool PhysicsJointFixed::init(PhysicsBody* a, PhysicsBody* b, const Point& anchr)
     return false;
 }
 
-PhysicsJointPin* PhysicsJointPin::construct(PhysicsBody* a, PhysicsBody* b, const Point& anchr)
+PhysicsJointPin* PhysicsJointPin::construct(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr)
 {
-    PhysicsJointPin* joint = new PhysicsJointPin();
+    PhysicsJointPin* joint = new (std::nothrow) PhysicsJointPin();
     
     if (joint && joint->init(a, b, anchr))
     {
@@ -216,7 +216,7 @@ PhysicsJointPin* PhysicsJointPin::construct(PhysicsBody* a, PhysicsBody* b, cons
     return nullptr;
 }
 
-bool PhysicsJointPin::init(PhysicsBody *a, PhysicsBody *b, const Point& anchr)
+bool PhysicsJointPin::init(PhysicsBody *a, PhysicsBody *b, const Vec2& anchr)
 {
     do
     {
@@ -234,9 +234,9 @@ bool PhysicsJointPin::init(PhysicsBody *a, PhysicsBody *b, const Point& anchr)
     return false;
 }
 
-PhysicsJointLimit* PhysicsJointLimit::construct(PhysicsBody* a, PhysicsBody* b, const Point& anchr1, const Point& anchr2, float min, float max)
+PhysicsJointLimit* PhysicsJointLimit::construct(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr1, const Vec2& anchr2, float min, float max)
 {
-    PhysicsJointLimit* joint = new PhysicsJointLimit();
+    PhysicsJointLimit* joint = new (std::nothrow) PhysicsJointLimit();
     
     if (joint && joint->init(a, b, anchr1, anchr2, min, max))
     {
@@ -247,12 +247,12 @@ PhysicsJointLimit* PhysicsJointLimit::construct(PhysicsBody* a, PhysicsBody* b, 
     return nullptr;
 }
 
-PhysicsJointLimit* PhysicsJointLimit::construct(PhysicsBody* a, PhysicsBody* b, const Point& anchr1, const Point& anchr2)
+PhysicsJointLimit* PhysicsJointLimit::construct(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr1, const Vec2& anchr2)
 {
     return construct(a, b, anchr1, anchr2, 0, b->local2World(anchr1).getDistance(a->local2World(anchr2)));
 }
 
-bool PhysicsJointLimit::init(PhysicsBody* a, PhysicsBody* b, const Point& anchr1, const Point& anchr2, float min, float max)
+bool PhysicsJointLimit::init(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr1, const Vec2& anchr2, float min, float max)
 {
     do
     {
@@ -294,29 +294,29 @@ void PhysicsJointLimit::setMax(float max)
     cpSlideJointSetMax(_info->getJoints().front(), PhysicsHelper::float2cpfloat(max));
 }
 
-Point PhysicsJointLimit::getAnchr1() const
+Vec2 PhysicsJointLimit::getAnchr1() const
 {
     return PhysicsHelper::cpv2point(cpSlideJointGetAnchr1(_info->getJoints().front()));
 }
 
-void PhysicsJointLimit::setAnchr1(const Point& anchr)
+void PhysicsJointLimit::setAnchr1(const Vec2& anchr)
 {
     cpSlideJointSetAnchr1(_info->getJoints().front(), PhysicsHelper::point2cpv(anchr));
 }
 
-Point PhysicsJointLimit::getAnchr2() const
+Vec2 PhysicsJointLimit::getAnchr2() const
 {
     return PhysicsHelper::cpv2point(cpSlideJointGetAnchr2(_info->getJoints().front()));
 }
 
-void PhysicsJointLimit::setAnchr2(const Point& anchr)
+void PhysicsJointLimit::setAnchr2(const Vec2& anchr)
 {
     cpSlideJointSetAnchr1(_info->getJoints().front(), PhysicsHelper::point2cpv(anchr));
 }
 
-PhysicsJointDistance* PhysicsJointDistance::construct(PhysicsBody* a, PhysicsBody* b, const Point& anchr1, const Point& anchr2)
+PhysicsJointDistance* PhysicsJointDistance::construct(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr1, const Vec2& anchr2)
 {
-    PhysicsJointDistance* joint = new PhysicsJointDistance();
+    PhysicsJointDistance* joint = new (std::nothrow) PhysicsJointDistance();
     
     if (joint && joint->init(a, b, anchr1, anchr2))
     {
@@ -327,7 +327,7 @@ PhysicsJointDistance* PhysicsJointDistance::construct(PhysicsBody* a, PhysicsBod
     return nullptr;
 }
 
-bool PhysicsJointDistance::init(PhysicsBody* a, PhysicsBody* b, const Point& anchr1, const Point& anchr2)
+bool PhysicsJointDistance::init(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr1, const Vec2& anchr2)
 {
     do
     {
@@ -358,9 +358,9 @@ void PhysicsJointDistance::setDistance(float distance)
     cpPinJointSetDist(_info->getJoints().front(), PhysicsHelper::float2cpfloat(distance));
 }
 
-PhysicsJointSpring* PhysicsJointSpring::construct(PhysicsBody* a, PhysicsBody* b, const Point& anchr1, const Point& anchr2, float stiffness, float damping)
+PhysicsJointSpring* PhysicsJointSpring::construct(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr1, const Vec2& anchr2, float stiffness, float damping)
 {
-    PhysicsJointSpring* joint = new PhysicsJointSpring();
+    PhysicsJointSpring* joint = new (std::nothrow) PhysicsJointSpring();
     
     if (joint && joint->init(a, b, anchr1, anchr2, stiffness, damping))
     {
@@ -371,7 +371,7 @@ PhysicsJointSpring* PhysicsJointSpring::construct(PhysicsBody* a, PhysicsBody* b
     return nullptr;
 }
 
-bool PhysicsJointSpring::init(PhysicsBody* a, PhysicsBody* b, const Point& anchr1, const Point& anchr2, float stiffness, float damping)
+bool PhysicsJointSpring::init(PhysicsBody* a, PhysicsBody* b, const Vec2& anchr1, const Vec2& anchr2, float stiffness, float damping)
 {
     do {
         CC_BREAK_IF(!PhysicsJoint::init(a, b));
@@ -394,22 +394,22 @@ bool PhysicsJointSpring::init(PhysicsBody* a, PhysicsBody* b, const Point& anchr
     return false;
 }
 
-Point PhysicsJointSpring::getAnchr1() const
+Vec2 PhysicsJointSpring::getAnchr1() const
 {
     return PhysicsHelper::cpv2point(cpDampedSpringGetAnchr1(_info->getJoints().front()));
 }
 
-void PhysicsJointSpring::setAnchr1(const Point& anchr)
+void PhysicsJointSpring::setAnchr1(const Vec2& anchr)
 {
     cpDampedSpringSetAnchr1(_info->getJoints().front(), PhysicsHelper::point2cpv(anchr));
 }
 
-Point PhysicsJointSpring::getAnchr2() const
+Vec2 PhysicsJointSpring::getAnchr2() const
 {
     return PhysicsHelper::cpv2point(cpDampedSpringGetAnchr2(_info->getJoints().front()));
 }
 
-void PhysicsJointSpring::setAnchr2(const Point& anchr)
+void PhysicsJointSpring::setAnchr2(const Vec2& anchr)
 {
     cpDampedSpringSetAnchr1(_info->getJoints().front(), PhysicsHelper::point2cpv(anchr));
 }
@@ -444,9 +444,9 @@ void PhysicsJointSpring::setDamping(float damping)
     cpDampedSpringSetDamping(_info->getJoints().front(), PhysicsHelper::float2cpfloat(damping));
 }
 
-PhysicsJointGroove* PhysicsJointGroove::construct(PhysicsBody* a, PhysicsBody* b, const Point& grooveA, const Point& grooveB, const Point& anchr2)
+PhysicsJointGroove* PhysicsJointGroove::construct(PhysicsBody* a, PhysicsBody* b, const Vec2& grooveA, const Vec2& grooveB, const Vec2& anchr2)
 {
-    PhysicsJointGroove* joint = new PhysicsJointGroove();
+    PhysicsJointGroove* joint = new (std::nothrow) PhysicsJointGroove();
     
     if (joint && joint->init(a, b, grooveA, grooveB, anchr2))
     {
@@ -457,7 +457,7 @@ PhysicsJointGroove* PhysicsJointGroove::construct(PhysicsBody* a, PhysicsBody* b
     return nullptr;
 }
 
-bool PhysicsJointGroove::init(PhysicsBody* a, PhysicsBody* b, const Point& grooveA, const Point& grooveB, const Point& anchr2)
+bool PhysicsJointGroove::init(PhysicsBody* a, PhysicsBody* b, const Vec2& grooveA, const Vec2& grooveB, const Vec2& anchr2)
 {
     do {
         CC_BREAK_IF(!PhysicsJoint::init(a, b));
@@ -478,39 +478,39 @@ bool PhysicsJointGroove::init(PhysicsBody* a, PhysicsBody* b, const Point& groov
     return false;
 }
 
-Point PhysicsJointGroove::getGrooveA() const
+Vec2 PhysicsJointGroove::getGrooveA() const
 {
     return PhysicsHelper::cpv2point(cpGrooveJointGetGrooveA(_info->getJoints().front()));
 }
 
-void PhysicsJointGroove::setGrooveA(const Point& grooveA)
+void PhysicsJointGroove::setGrooveA(const Vec2& grooveA)
 {
     cpGrooveJointSetGrooveA(_info->getJoints().front(), PhysicsHelper::point2cpv(grooveA));
 }
 
-Point PhysicsJointGroove::getGrooveB() const
+Vec2 PhysicsJointGroove::getGrooveB() const
 {
     return PhysicsHelper::cpv2point(cpGrooveJointGetGrooveB(_info->getJoints().front()));
 }
 
-void PhysicsJointGroove::setGrooveB(const Point& grooveB)
+void PhysicsJointGroove::setGrooveB(const Vec2& grooveB)
 {
     cpGrooveJointSetGrooveB(_info->getJoints().front(), PhysicsHelper::point2cpv(grooveB));
 }
 
-Point PhysicsJointGroove::getAnchr2() const
+Vec2 PhysicsJointGroove::getAnchr2() const
 {
     return PhysicsHelper::cpv2point(cpGrooveJointGetAnchr2(_info->getJoints().front()));
 }
 
-void PhysicsJointGroove::setAnchr2(const Point& anchr2)
+void PhysicsJointGroove::setAnchr2(const Vec2& anchr2)
 {
     cpGrooveJointSetAnchr2(_info->getJoints().front(), PhysicsHelper::point2cpv(anchr2));
 }
 
 PhysicsJointRotarySpring* PhysicsJointRotarySpring::construct(PhysicsBody* a, PhysicsBody* b, float stiffness, float damping)
 {
-    PhysicsJointRotarySpring* joint = new PhysicsJointRotarySpring();
+    PhysicsJointRotarySpring* joint = new (std::nothrow) PhysicsJointRotarySpring();
     
     if (joint && joint->init(a, b, stiffness, damping))
     {
@@ -574,7 +574,7 @@ void PhysicsJointRotarySpring::setDamping(float damping)
 
 PhysicsJointRotaryLimit* PhysicsJointRotaryLimit::construct(PhysicsBody* a, PhysicsBody* b, float min, float max)
 {
-    PhysicsJointRotaryLimit* joint = new PhysicsJointRotaryLimit();
+    PhysicsJointRotaryLimit* joint = new (std::nothrow) PhysicsJointRotaryLimit();
     
     if (joint && joint->init(a, b, min, max))
     {
@@ -633,7 +633,7 @@ void PhysicsJointRotaryLimit::setMax(float max)
 
 PhysicsJointRatchet* PhysicsJointRatchet::construct(PhysicsBody* a, PhysicsBody* b, float phase, float ratchet)
 {
-    PhysicsJointRatchet* joint = new PhysicsJointRatchet();
+    PhysicsJointRatchet* joint = new (std::nothrow) PhysicsJointRatchet();
     
     if (joint && joint->init(a, b, phase, ratchet))
     {
@@ -697,7 +697,7 @@ void PhysicsJointRatchet::setRatchet(float ratchet)
 
 PhysicsJointGear* PhysicsJointGear::construct(PhysicsBody* a, PhysicsBody* b, float phase, float ratchet)
 {
-    PhysicsJointGear* joint = new PhysicsJointGear();
+    PhysicsJointGear* joint = new (std::nothrow) PhysicsJointGear();
     
     if (joint && joint->init(a, b, phase, ratchet))
     {
@@ -751,7 +751,7 @@ void PhysicsJointGear::setRatio(float ratio)
 
 PhysicsJointMotor* PhysicsJointMotor::construct(PhysicsBody* a, PhysicsBody* b, float rate)
 {
-    PhysicsJointMotor* joint = new PhysicsJointMotor();
+    PhysicsJointMotor* joint = new (std::nothrow) PhysicsJointMotor();
     
     if (joint && joint->init(a, b, rate))
     {

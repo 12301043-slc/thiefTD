@@ -29,7 +29,8 @@
 #define __CCCONTROLSTEPPER_H__
 
 #include "CCControl.h"
-#include "CCLabel.h"
+#include "2d/CCLabel.h"
+#include "extensions/ExtensionExport.h"
 
 NS_CC_EXT_BEGIN
 
@@ -40,7 +41,7 @@ NS_CC_EXT_BEGIN
  * @{
  */
 
-class ControlStepper : public Control
+class CC_EX_DLL ControlStepper : public Control
 {
 public:
     enum class Part
@@ -81,7 +82,7 @@ public:
     void update(float dt);
 
     /** Update the layout of the stepper with the given touch location. */
-    void updateLayoutUsingTouchLocation(Point location);
+    void updateLayoutUsingTouchLocation(Vec2 location);
 
     /** Start the autorepeat increment/decrement. */
     void startAutorepeat();

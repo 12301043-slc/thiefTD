@@ -1,8 +1,8 @@
 #ifndef _CCB_CCLABELBMFONTLOADER_H_
 #define _CCB_CCLABELBMFONTLOADER_H_
 
-#include "CCRef.h"
-#include "CCLabel.h"
+#include "base/CCRef.h"
+#include "2d/CCLabel.h"
 
 #include "CCNodeLoader.h"
 
@@ -11,7 +11,7 @@ namespace cocosbuilder {
 /* Forward declaration. */
 class CCBReader;
 
-class LabelBMFontLoader : public NodeLoader {
+class CC_DLL LabelBMFontLoader : public NodeLoader {
 public:
     /**
      * @js NA

@@ -30,13 +30,15 @@ THE SOFTWARE.
 #include "cocostudio/CCTween.h"
 #include "cocostudio/CCDecorativeDisplay.h"
 #include "cocostudio/CCDisplayManager.h"
-#include "CCNode.h"
+#include "cocostudio/CocosStudioExport.h"
+#include "2d/CCNode.h"
+#include "math/CCMath.h"
 
 namespace cocostudio {
 
 class Armature;
 
-class Bone : public cocos2d::Node
+class CC_STUDIO_DLL Bone : public cocos2d::Node
 {
 public:
     /**
@@ -153,10 +155,10 @@ public:
     virtual void setTransformDirty(bool dirty) { _boneTransformDirty = dirty; }
     virtual bool isTransformDirty() { return _boneTransformDirty; }
 
-    virtual kmMat4 getNodeToArmatureTransform() const;
-    virtual kmMat4 getNodeToWorldTransform() const override;
+    virtual cocos2d::Mat4 getNodeToArmatureTransform() const;
+    virtual cocos2d::Mat4 getNodeToWorldTransform() const override;
 
-    Node *getDisplayRenderNode();
+    cocos2d::Node *getDisplayRenderNode();
     DisplayType getDisplayRenderNodeType();
 
     /*
@@ -206,9 +208,6 @@ public:
 
     virtual FrameData *getTweenData() const { return _tweenData; }
 
-    virtual void setName(const std::string &name) { _name = name; }
-    virtual const std::string getName() const { return _name; }
-
     virtual BaseData *getWorldInfo() const { return _worldInfo; }
 protected:
     void applyParentTransform(Bone *parent);
@@ -241,13 +240,11 @@ protected:
     //! Used for making tween effect in every frame
     FrameData *_tweenData;
 
-    std::string _name;
-
     Bone *_parentBone;	               //! A weak reference to its parent
     bool _boneTransformDirty;          //! Whether or not transform dirty
 
     //! self Transform, use this to change display's state
-    kmMat4 _worldTransform;
+    cocos2d::Mat4 _worldTransform;
 
     BaseData *_worldInfo;
     

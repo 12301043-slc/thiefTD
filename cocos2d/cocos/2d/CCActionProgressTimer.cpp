@@ -23,8 +23,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-#include "CCActionProgressTimer.h"
-#include "CCProgressTimer.h"
+#include "2d/CCActionProgressTimer.h"
+#include "2d/CCProgressTimer.h"
 
 NS_CC_BEGIN
 
@@ -34,7 +34,7 @@ NS_CC_BEGIN
 
 ProgressTo* ProgressTo::create(float duration, float percent)
 {
-    ProgressTo *progressTo = new ProgressTo();
+    ProgressTo *progressTo = new (std::nothrow) ProgressTo();
     progressTo->initWithDuration(duration, percent);
     progressTo->autorelease();
 
@@ -56,7 +56,7 @@ bool ProgressTo::initWithDuration(float duration, float percent)
 ProgressTo* ProgressTo::clone() const
 {
 	// no copy constructor	
-	auto a = new ProgressTo();
+	auto a = new (std::nothrow) ProgressTo();
     a->initWithDuration(_duration, _to);
 	a->autorelease();
 	return a;
@@ -72,13 +72,6 @@ void ProgressTo::startWithTarget(Node *target)
 {
     ActionInterval::startWithTarget(target);
     _from = ((kProgressTimerCast)(target))->getPercentage();
-
-    // XXX: Is this correct ?
-    // Adding it to support Repeat
-    if (_from == 100)
-    {
-        _from = 0;
-    }
 }
 
 void ProgressTo::update(float time)
@@ -90,7 +83,7 @@ void ProgressTo::update(float time)
 
 ProgressFromTo* ProgressFromTo::create(float duration, float fromPercentage, float toPercentage)
 {
-    ProgressFromTo *progressFromTo = new ProgressFromTo();
+    ProgressFromTo *progressFromTo = new (std::nothrow) ProgressFromTo();
     progressFromTo->initWithDuration(duration, fromPercentage, toPercentage);
     progressFromTo->autorelease();
 
@@ -113,14 +106,14 @@ bool ProgressFromTo::initWithDuration(float duration, float fromPercentage, floa
 ProgressFromTo* ProgressFromTo::clone() const
 {
 	// no copy constructor	
-	auto a = new ProgressFromTo();
+	auto a = new (std::nothrow) ProgressFromTo();
 	a->initWithDuration(_duration, _from, _to);
 	a->autorelease();
 	return a;
 }
 
 
-ProgressFromTo* ProgressFromTo::reverse(void) const
+ProgressFromTo* ProgressFromTo::reverse() const
 {
     return ProgressFromTo::create(_duration, _to, _from);
 }

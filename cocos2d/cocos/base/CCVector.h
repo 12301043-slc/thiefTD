@@ -26,8 +26,8 @@ THE SOFTWARE.
 #ifndef __CCVECTOR_H__
 #define __CCVECTOR_H__
 
-#include "ccMacros.h"
-#include "CCRef.h"
+#include "base/ccMacros.h"
+#include "base/CCRef.h"
 #include <vector>
 #include <functional>
 #include <algorithm> // for std::find
@@ -35,7 +35,7 @@ THE SOFTWARE.
 NS_CC_BEGIN
 
 template<class T>
-class CC_DLL Vector
+class Vector
 {
 public:
     // ------------------------------------------

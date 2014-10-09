@@ -14,7 +14,7 @@
 #include "FailedScene.h"
 #include "LevelScene.h"
 #include "SimpleAudioEngine.h"
-#include "cocos-ext.h"
+#include "extensions/cocos-ext.h"
 
 USING_NS_CC_EXT;
 using namespace CocosDenshion;
@@ -107,7 +107,7 @@ void PlayLayer::initPointsVector(float offX)
 	while (point.begin()!= point.end())
 	{
 		float x = point.at("x").asFloat();
-		float y = point.at("y").asFloat();
+		float y = point.at("y").asFloat()-20;
 		runOfPoint = Node::create();
 		runOfPoint->setPosition(Point(x - offX, y ));
 		this->pointsVector.pushBack(runOfPoint);
@@ -253,17 +253,18 @@ void PlayLayer::addEnemy()
 	}
     
 	this->addChild(enemy, 10);
+	this->addChild(enemy->getHpBarBg(),1000);
     instance->enemyVector.pushBack(enemy);
 }
 
 void PlayLayer::logic(float dt)
 {
 	GroupEnemy* groupEnemy = this->currentGroup();
-    
+     
 	if(groupEnemy == NULL)
 	{
 		return;
-	}
+	} 
 	if(groupEnemy->getIsFinishedAddGroup() ==true  && instance->enemyVector.size() == 0 && groupCounter < instance->getGroupNum())
 	{
 		groupEnemy = this->nextGroup();
@@ -312,6 +313,12 @@ void PlayLayer::checkAndAddTowerPanle(Point position)
 	Point matrixCoord = convertToMatrixCoord(position);
     
 	int gid = bgLayer->getTileGIDAt(towerCoord);
+	
+	auto tmp_value =map->getPropertiesForGID(gid);
+	if(tmp_value.getType()!= Value::Type::MAP)
+	{
+		return ;
+	}
 	auto tileTemp = map->getPropertiesForGID(gid).asValueMap();
     int MatrixIndex = static_cast<int>( matrixCoord.y * MAP_WIDTH + matrixCoord.x );
 

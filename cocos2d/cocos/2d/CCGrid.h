@@ -26,21 +26,16 @@ THE SOFTWARE.
 #ifndef __EFFECTS_CCGRID_H__
 #define __EFFECTS_CCGRID_H__
 
-#include "CCRef.h"
-#include "CCNode.h"
-#include "ccTypes.h"
-#include "CCTexture2D.h"
-#include "CCDirector.h"
-#include "kazmath/mat4.h"
-#ifdef EMSCRIPTEN
-#include "CCGLBufferedNode.h"
-#endif // EMSCRIPTEN
+#include "base/CCRef.h"
+#include "base/ccTypes.h"
+#include "base/CCDirector.h"
 
 NS_CC_BEGIN
 
 class Texture2D;
 class Grabber;
 class GLProgram;
+class Node;
 
 /**
  * @addtogroup effects
@@ -78,8 +73,8 @@ public:
     inline void setGridSize(const Size& gridSize) { _gridSize = gridSize; }
 
     /** pixels between the grids */
-    inline const Point& getStep(void) const { return _step; }
-    inline void setStep(const Point& step) { _step = step; }
+    inline const Vec2& getStep(void) const { return _step; }
+    inline void setStep(const Vec2& step) { _step = step; }
 
     /** is texture flipped */
     inline bool isTextureFlipped(void) const { return _isTextureFlipped; }
@@ -87,6 +82,8 @@ public:
 
     void beforeDraw(void);
     void afterDraw(Node *target);
+    virtual void beforeBlit() {}
+    virtual void afterBlit() {}
     virtual void blit(void);
     virtual void reuse(void);
     virtual void calculateVertexPoints(void);
@@ -98,7 +95,7 @@ protected:
     int  _reuseGrid;
     Size _gridSize;
     Texture2D *_texture;
-    Point _step;
+    Vec2 _step;
     Grabber *_grabber;
     bool _isTextureFlipped;
     GLProgram* _shaderProgram;
@@ -109,9 +106,6 @@ protected:
  Grid3D is a 3D grid implementation. Each vertex has 3 dimensions: x,y,z
  */
 class CC_DLL Grid3D : public GridBase
-#ifdef EMSCRIPTEN
-, public GLBufferedNode
-#endif // EMSCRIPTEN
 {
 public:
     /** create one Grid */
@@ -132,39 +126,45 @@ public:
      * @js NA
      * @lua NA
      */
-    Vertex3F getVertex(const Point& pos) const;
+    Vec3 getVertex(const Vec2& pos) const;
     /** @deprecated Use getVertex() instead 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE Vertex3F vertex(const Point& pos) const { return getVertex(pos); }
+    CC_DEPRECATED_ATTRIBUTE Vec3 vertex(const Vec2& pos) const { return getVertex(pos); }
     /** returns the original (non-transformed) vertex at a given position
      * @js NA
      * @lua NA
      */
-    Vertex3F getOriginalVertex(const Point& pos) const;
+    Vec3 getOriginalVertex(const Vec2& pos) const;
     /** @deprecated Use getOriginalVertex() instead 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE Vertex3F originalVertex(const Point& pos) const { return getOriginalVertex(pos); }
+    CC_DEPRECATED_ATTRIBUTE Vec3 originalVertex(const Vec2& pos) const { return getOriginalVertex(pos); }
 
     /** sets a new vertex at a given position 
      * @js NA
      * @lua NA
      */
-    void setVertex(const Point& pos, const Vertex3F& vertex);
-
+    void setVertex(const Vec2& pos, const Vec3& vertex);
+    
+    virtual void beforeBlit() override;
+    virtual void afterBlit() override;
     // Overrides
     virtual void blit() override;
     virtual void reuse() override;
     virtual void calculateVertexPoints() override;
-
+    
+    void setNeedDepthTestForBlit( bool neededDepthTest) { _needDepthTestForBlit = neededDepthTest; }
+    bool getNeedDepthTestForBlit() const { return _needDepthTestForBlit; }
 protected:
     GLvoid *_texCoordinates;
     GLvoid *_vertices;
     GLvoid *_originalVertices;
     GLushort *_indices;
+    bool _needDepthTestForBlit;
+    bool _oldDepthTestValue;
 };
 
 /**
@@ -172,9 +172,6 @@ protected:
  the tiles can be separated from the grid.
 */
 class CC_DLL TiledGrid3D : public GridBase
-#ifdef EMSCRIPTEN
-, public GLBufferedNode
-#endif // EMSCRIPTEN
 {
 public:
     /** create one Grid */
@@ -195,28 +192,28 @@ public:
      * @js NA
      * @lua NA
      */
-    Quad3 getTile(const Point& pos) const;
+    Quad3 getTile(const Vec2& pos) const;
     /** returns the tile at the given position 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE Quad3 tile(const Point& pos) const { return getTile(pos); }
+    CC_DEPRECATED_ATTRIBUTE Quad3 tile(const Vec2& pos) const { return getTile(pos); }
     /** returns the original tile (untransformed) at the given position 
      * @js NA
      * @lua NA
      */
-    Quad3 getOriginalTile(const Point& pos) const;
+    Quad3 getOriginalTile(const Vec2& pos) const;
     /** returns the original tile (untransformed) at the given position 
      * @js NA
      * @lua NA
      */
-    CC_DEPRECATED_ATTRIBUTE Quad3 originalTile(const Point& pos) const { return getOriginalTile(pos); }
+    CC_DEPRECATED_ATTRIBUTE Quad3 originalTile(const Vec2& pos) const { return getOriginalTile(pos); }
 
     /** sets a new tile 
      * @js NA
      * @lua NA
      */
-    void setTile(const Point& pos, const Quad3& coords);
+    void setTile(const Vec2& pos, const Quad3& coords);
 
     // Overrides
     virtual void blit() override;

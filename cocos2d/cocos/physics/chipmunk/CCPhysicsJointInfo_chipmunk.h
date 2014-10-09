@@ -25,13 +25,14 @@
 #ifndef __CCPHYSICS_JOINT_INFO_CHIPMUNK_H__
 #define __CCPHYSICS_JOINT_INFO_CHIPMUNK_H__
 
-#include "ccConfig.h"
+#include "base/ccConfig.h"
 #if CC_USE_PHYSICS
 
-#include "chipmunk.h"
-#include "CCPlatformMacros.h"
+#include "platform/CCPlatformMacros.h"
 #include <vector>
 #include <unordered_map>
+
+struct cpConstraint;
 NS_CC_BEGIN
 
 class PhysicsJoint;

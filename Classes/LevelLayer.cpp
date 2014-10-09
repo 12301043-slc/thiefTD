@@ -42,7 +42,7 @@ bool LevelLayer::init()
   
 void LevelLayer::goToCurrNode()
 {
-    this->runAction(MoveTo::create(0.4f, Point::Point(-curPageNode * WINDOW_WIDTH, 0)));
+	this->runAction(MoveTo::create(0.4f, Point::Vec2(-curPageNode * WINDOW_WIDTH, 0)));
 }
 
 void LevelLayer::addNode(Node *level)
@@ -67,7 +67,7 @@ void LevelLayer::onTouchMoved(Touch *touch, Event  *event)
 {
     Point touchPoint = touch->getLocation();
     auto currX = this->getPositionX() + touchPoint.x - touchCurPoint.x;
-    Point posPoint = Point::Point(currX, getPositionY());
+	Point posPoint = Point::Vec2(currX, getPositionY());
     auto dis= fabsf(touchPoint.x - touchCurPoint.x);
     if (dis >= SHORTEST_SLIDE_LENGTH ) {
         setPosition(posPoint);

@@ -59,9 +59,14 @@ void MultiDirTower::createBullet6(float dt)
 			Point normalizedShootVector;
 			if( i >= dirTotal / 2 )
 			{
-				normalizedShootVector = shootVector.normalize();
+				Point temp =shootVector;
+				temp.normalize();
+				normalizedShootVector = temp;
 			}else{
-				normalizedShootVector = -shootVector.normalize();
+				Point temp =shootVector;
+				temp.normalize();
+				temp*=-1;
+				normalizedShootVector = temp;
 			}
 			auto farthestDistance = Director::getInstance()->getWinSize().width;
 			Point overshotVector = normalizedShootVector * farthestDistance;

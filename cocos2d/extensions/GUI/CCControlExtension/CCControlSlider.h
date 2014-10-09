@@ -32,6 +32,7 @@
 
 #include "CCControl.h"
 #include "CCInvocation.h"
+#include "extensions/ExtensionExport.h"
 
 NS_CC_EXT_BEGIN
 
@@ -42,7 +43,7 @@ NS_CC_EXT_BEGIN
  * @{
  */
 
-class ControlSlider: public Control
+class CC_EX_DLL ControlSlider: public Control
 {
 public:
     /**
@@ -111,21 +112,21 @@ public:
     virtual void setMaximumValue(float val);
     virtual void setEnabled(bool enabled);
     virtual bool isTouchInside(Touch * touch);
-    Point locationFromTouch(Touch* touch);
+    Vec2 locationFromTouch(Touch* touch);
     virtual void setValue(float val);
     virtual void setMinimumValue(float val);
 
 protected:
-    void sliderBegan(Point location);
-    void sliderMoved(Point location);
-    void sliderEnded(Point location);
+    void sliderBegan(Vec2 location);
+    void sliderMoved(Vec2 location);
+    void sliderEnded(Vec2 location);
 
     virtual bool onTouchBegan(Touch* touch, Event* pEvent);
     virtual void onTouchMoved(Touch *pTouch, Event *pEvent);
     virtual void onTouchEnded(Touch *pTouch, Event *pEvent);
 
     /** Returns the value for the given location. */
-    float valueForLocation(Point location);
+    float valueForLocation(Vec2 location);
 
     //maunally put in the setters
     /** Contains the receiver's current value. */

@@ -26,15 +26,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
+#include "2d/CCTMXXMLParser.h"
 #include <unordered_map>
 #include <sstream>
-#include "CCTMXXMLParser.h"
-#include "CCTMXTiledMap.h"
-#include "ccMacros.h"
+#include "2d/CCTMXTiledMap.h"
+#include "base/ZipUtils.h"
+#include "base/base64.h"
+#include "base/CCDirector.h"
 #include "platform/CCFileUtils.h"
-#include "ZipUtils.h"
-#include "base64.h"
-#include "CCDirector.h"
 
 using namespace std;
 
@@ -45,7 +44,7 @@ TMXLayerInfo::TMXLayerInfo()
 : _name("")
 , _tiles(nullptr)
 , _ownTiles(true)
-, _offset(Point::ZERO)
+, _offset(Vec2::ZERO)
 {
 }
 
@@ -100,7 +99,7 @@ Rect TMXTilesetInfo::getRectForGID(uint32_t gid)
 
 TMXMapInfo * TMXMapInfo::create(const std::string& tmxFile)
 {
-    TMXMapInfo *ret = new TMXMapInfo();
+    TMXMapInfo *ret = new (std::nothrow) TMXMapInfo();
     if(ret->initWithTMXFile(tmxFile))
     {
         ret->autorelease();
@@ -112,7 +111,7 @@ TMXMapInfo * TMXMapInfo::create(const std::string& tmxFile)
 
 TMXMapInfo * TMXMapInfo::createWithXML(const std::string& tmxString, const std::string& resourcePath)
 {
-    TMXMapInfo *ret = new TMXMapInfo();
+    TMXMapInfo *ret = new (std::nothrow) TMXMapInfo();
     if(ret->initWithXML(tmxString, resourcePath))
     {
         ret->autorelease();
@@ -278,7 +277,7 @@ void TMXMapInfo::startElement(void *ctx, const char *name, const char **atts)
         }
         else
         {
-            TMXTilesetInfo *tileset = new TMXTilesetInfo();
+            TMXTilesetInfo *tileset = new (std::nothrow) TMXTilesetInfo();
             tileset->_name = attributeDict["name"].asString();
             
             if (_recordFirstGID)
@@ -332,7 +331,7 @@ void TMXMapInfo::startElement(void *ctx, const char *name, const char **atts)
     }
     else if (elementName == "layer")
     {
-        TMXLayerInfo *layer = new TMXLayerInfo();
+        TMXLayerInfo *layer = new (std::nothrow) TMXLayerInfo();
         layer->_name = attributeDict["name"].asString();
 
         Size s;
@@ -340,22 +339,15 @@ void TMXMapInfo::startElement(void *ctx, const char *name, const char **atts)
         s.height = attributeDict["height"].asFloat();
         layer->_layerSize = s;
 
-        layer->_visible = attributeDict["visible"].asBool();
+        Value& visibleValue = attributeDict["visible"];
+        layer->_visible = visibleValue.isNull() ? true : visibleValue.asBool();
 
         Value& opacityValue = attributeDict["opacity"];
-
-        if( !opacityValue.isNull() )
-        {
-            layer->_opacity = (unsigned char)(255.0f * opacityValue.asFloat());
-        }
-        else
-        {
-            layer->_opacity = 255;
-        }
+        layer->_opacity = opacityValue.isNull() ? 255 : (unsigned char)(255.0f * opacityValue.asFloat());
 
         float x = attributeDict["x"].asFloat();
         float y = attributeDict["y"].asFloat();
-        layer->_offset = Point(x,y);
+        layer->_offset = Vec2(x,y);
 
         tmxMapInfo->getLayers().pushBack(layer);
         layer->release();
@@ -366,9 +358,9 @@ void TMXMapInfo::startElement(void *ctx, const char *name, const char **atts)
     } 
     else if (elementName == "objectgroup")
     {
-        TMXObjectGroup *objectGroup = new TMXObjectGroup();
+        TMXObjectGroup *objectGroup = new (std::nothrow) TMXObjectGroup();
         objectGroup->setGroupName(attributeDict["name"].asString());
-        Point positionOffset;
+        Vec2 positionOffset;
         positionOffset.x = attributeDict["x"].asFloat() * tmxMapInfo->getTileSize().width;
         positionOffset.y = attributeDict["y"].asFloat() * tmxMapInfo->getTileSize().height;
         objectGroup->setPositionOffset(positionOffset);
@@ -459,7 +451,7 @@ void TMXMapInfo::startElement(void *ctx, const char *name, const char **atts)
         // Y
         int y = attributeDict["y"].asInt();
         
-        Point p(x + objectGroup->getPositionOffset().x, _mapSize.height * _tileSize.height - y  - objectGroup->getPositionOffset().x - attributeDict["height"].asInt());
+        Vec2 p(x + objectGroup->getPositionOffset().x, _mapSize.height * _tileSize.height - y  - objectGroup->getPositionOffset().x - attributeDict["height"].asInt());
         p = CC_POINT_PIXELS_TO_POINTS(p);
         dict["x"] = Value(p.x);
         dict["y"] = Value(p.y);

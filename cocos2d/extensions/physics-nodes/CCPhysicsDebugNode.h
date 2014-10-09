@@ -24,7 +24,8 @@
 #define __PHYSICSNODES_DEBUGNODE_H__
 
 #include "extensions/ExtensionMacros.h"
-#include "CCDrawNode.h"
+#include "2d/CCDrawNode.h"
+#include "extensions/ExtensionExport.h"
 
 struct cpSpace;
 
@@ -40,7 +41,7 @@ NS_CC_EXT_BEGIN
  @since v2.1
  */
 
-class PhysicsDebugNode : public DrawNode
+class CC_EX_DLL PhysicsDebugNode : public DrawNode
 {
 
 public:
@@ -61,7 +62,7 @@ public:
     void setSpace(cpSpace *space);
     
     // Overrides
-    virtual void draw(Renderer *renderer, const kmMat4 &transform, bool transformUpdated) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
 
 protected:
     cpSpace *_spacePtr;

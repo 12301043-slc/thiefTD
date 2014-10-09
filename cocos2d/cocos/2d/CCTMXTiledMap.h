@@ -27,13 +27,12 @@ THE SOFTWARE.
 #ifndef __CCTMX_TILE_MAP_H__
 #define __CCTMX_TILE_MAP_H__
 
-#include "CCNode.h"
-#include "CCTMXObjectGroup.h"
-#include "CCValue.h"
+#include "2d/CCNode.h"
+#include "2d/CCTMXObjectGroup.h"
+#include "base/CCValue.h"
 
 NS_CC_BEGIN
 
-class TMXObjectGroup;
 class TMXLayer;
 class TMXLayerInfo;
 class TMXTilesetInfo;
